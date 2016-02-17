@@ -33,7 +33,7 @@ plt.draw()
 
 # to draw step by step the graph
 plt.figure(2)
-nx.draw_networkx_nodes(G,pos)
+nx.draw_networkx_nodes(G,pos, node_size=700, node_color=range(10))
 
 nx.draw_networkx_edges(G,pos, width=6, alpha=0.5, edge_color='b', style='dashed')
 nx.draw_networkx_labels(G,pos, font_size=20, font_family='sans-serif')
