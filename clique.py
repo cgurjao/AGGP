@@ -41,10 +41,17 @@ nx.draw_networkx_labels(G,pos, font_size=20, font_family='sans-serif')
 
 
 
-plt.show()
+# plt.show()
 
 
 
 
 # if wants a weigthed graph you can add in the tuple a third number witch is the weigth of the edge
 # and with the function             add_weighted_edges_from(list_edges_weighted)
+
+
+# draw the histogramm of the degree of nodes
+plt.figure(3)
+print nx.degree(G).values()
+plt.hist(nx.degree(G).values())
+plt.show()
