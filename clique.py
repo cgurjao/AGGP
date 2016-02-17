@@ -19,6 +19,7 @@ for i, vi in enumerate(genome[0]):
 
 print liste_edges
 
+# the list of edges must be a tuple with the two labels of the nodes inside
 
 G.add_edges_from(liste_edges)
 
@@ -41,3 +42,9 @@ nx.draw_networkx_labels(G,pos, font_size=20, font_family='sans-serif')
 
 
 plt.show()
+
+
+
+
+# if wants a weigthed graph you can add in the tuple a third number witch is the weigth of the edge
+# and with the function             add_weighted_edges_from(list_edges_weighted)
