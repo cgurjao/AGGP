@@ -1,27 +1,19 @@
 import networkx as nx
 import random
+import numpy
 import matplotlib.pyplot as plt
 
-genome = [[random.randint(0,1) for x in range(10)] for x in range(10)]
+a = numpy.reshape(numpy.random.random_integers(0,1,size=100),(10,10))
 
-for i in genome:
-	print i
 
-G = nx.Graph()
-G.add_nodes_from(range(10))
 
-liste_edges = []
-for i, vi in enumerate(genome[0]):
-	for j, vj in enumerate(genome[0]):
-		if i != j:
-			if vi == 1 or vj == 1:
-				liste_edges.append( (i,j) )
+print a
 
-print liste_edges
+G = nx.from_numpy_matrix(a)
+
+# print liste_edges
 
 # the list of edges must be a tuple with the two labels of the nodes inside
-
-G.add_edges_from(liste_edges)
 
 
 pos = nx.spring_layout(G) # position of all nodes
@@ -31,6 +23,8 @@ pos = nx.spring_layout(G) # position of all nodes
 plt.figure(1)
 nx.draw(G,pos=nx.spring_layout(G))
 plt.draw()
+
+
 
 # to draw step by step the graph
 plt.figure(2)
@@ -51,7 +45,24 @@ nx.draw_networkx_labels(G,pos, font_size=20, font_family='sans-serif')
 
 
 # draw the histogramm of the degree of nodes
-plt.figure(3)
+# plt.figure(3)
 print nx.degree(G).values()
-plt.hist(nx.degree(G).values())
+# plt.hist(nx.degree(G).values())
+
+
+
+list_deg = nx.degree(G).values()
+
+freq = {}
+
+for i in list_deg:
+
+	if i in freq.keys():
+		freq[i] += 1
+
+	else:
+		freq[i] = 1
+
+print freq
+
 plt.show()
