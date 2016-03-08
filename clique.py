@@ -8,15 +8,12 @@ except:
 ###########################################
 # Generate random genome
 ###########################################
+genome = numpy.reshape(numpy.random.random_integers(0,1,size=100),(10,10))
 
-genome = [[randint(0,1) for x in range(5)] for x in range(5)]
-for i in xrange(len(genome[0])):
-	print (genome[i])
 
 ###########################################
 # Generate nx-compatible graph
 ###########################################
-genome = numpy.array(genome)
 G = nx.Graph(genome)
 
 ###########################################
@@ -62,4 +59,13 @@ nx.draw_networkx_edges(Gcc,pos,alpha=0.4)
 #plt.savefig("degree_histogram.png")
 plt.show()
 
+
+#############################################
+# To have the frequence list
+#############################################
+list_deg = nx.degree(G).values()
+freq = {}
+for i in set(list_deg):
+	freq[i] = list_deg.count(i)
+print freq
 
