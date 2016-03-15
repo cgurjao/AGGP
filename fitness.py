@@ -7,8 +7,17 @@ try:
 except:
     raise
 
+from collections import deque
+from itertools import chain, islice
+try:
+    from itertools import ifilter as filter
+except ImportError:
+    pass
+import networkx
+from networkx.utils.decorators import *
+
 ##Define number of nodes
-N = 10
+N = 5
 ##Scale-free network parameters
 gamma = 2.2
 
@@ -188,10 +197,10 @@ for i in xrange(len(degree_sequence)):
 		if (degree_sequence[i] == unique_degrees[j]):
 			deviance_degree.append(observed[j]-expected[j])
 
-deviance_matrix = numpy.zeros((N,N))
+deviance_matrix2 = numpy.zeros((N,N))
 for i in xrange(N):
 	for j in xrange(N):
-		deviance_matrix[i][j]=deviance_degree[i] + deviance_degree[j]
+		deviance_matrix2[i][j]=deviance_degree[i] + deviance_degree[j]
 
 ##Uncomment to draw figure with expected and observed curve of proportions of each degree
 '''
@@ -218,13 +227,98 @@ print "Score Scale-free!"
 print "Root Sum Square is %f \n" %RSS
 
 #Score matrix to optimize
-deviance_matrix
+deviance_matrix2
+
+#######################################################
+# ----- Calculate the number of cliques in graph -----#
+#######################################################
+def enumerate_all_cliques(G): # list all cliques in G
+  index = {}
+  nbrs = {}
+  for u in G:
+      index[u] = len(index)
+      # Neighbors of u that appear after u in the iteration order of G.
+      nbrs[u] = {v for v in G[u] if v not in index}
+
+  queue = deque(([u], sorted(nbrs[u], key=index.__getitem__)) for u in G)
+  # Loop invariants:
+  # 1. len(base) is nondecreasing.
+  # 2. (base + cnbrs) is sorted with respect to the iteration order of G.
+  # 3. cnbrs is a set of common neighbors of nodes in base.
+  while queue:
+      base, cnbrs = map(list, queue.popleft())
+      yield base
+      for i, u in enumerate(cnbrs):
+          # Use generators to reduce memory consumption.
+          queue.append((chain(base, [u]),
+                        filter(nbrs[u].__contains__,
+                               islice(cnbrs, i + 1, None))))
+
+
+def nb_cliques(G) : # return the nomber of clique with minimum size k
+  clique_list = []
+  for clique in enumerate_all_cliques(G) :
+    clique_list.append(clique)
+  return len(clique_list)
+
+
 
 ###########################################
-########## Manipulate cliques #############
+#---------- Clique score graph -----------#
 ###########################################
-Max_num_clique = 0
-for i in xrange(N):
-	Max_num_clique = Max_num_clique + (math.factorial(N)/(math.factorial(i)*math.factorial(N-i)))
+def Max_num_clique(N) : # Maximum number of cliques
+  max_num_clique = 0
+  for i in xrange(N):
+    max_num_clique = max_num_clique + (math.factorial(N)/(math.factorial(i)*math.factorial(N-i)))
+  return max_num_clique
+
+def clique_score(G) :  # Clique Score 
+  return float(nb_cliques(G)/float(Max_num_clique(N)))
 
 
+
+###########################################
+#---------- Matrix score graph -----------#
+###########################################
+# if m[i,j] < 0 : the interaction between i and j must be created if unexisting,
+# or deleted if existing
+# if m[i,j] > : the (un)interaction between i and j must be kept as it is
+
+def matrix_score(G) :
+  deviance_matrix3 = numpy.zeros((N,N))    # the matrix scores
+
+  for i in range(0,N):
+    for j in range(i,N) :
+      score_obs = clique_score(G)   # score of the actual graph
+
+      if G.has_edge(i,j):
+        G.remove_edge(i,j)
+      else :
+        G.add_edge(i,j)
+
+      score_inv = clique_score(G)   # score of the modified graph (interaction i-j added or deleted)
+
+      deviance_matrix3[i,j] = float(score_obs - score_inv)
+
+      if G.has_edge(i,j):
+        G.remove_edge(i,j)
+      else :
+        G.add_edge(i,j)      
+  return deviance_matrix3
+
+deviance_matrix3 = matrix_score(G)
+
+##############################################
+#### -------------- TESTS ---------------- ###
+##############################################
+#print "nombre de cliques >= 1 : ", nb_cliques(G)
+
+#print "liste des cliques : \n", 
+#for k in list(enumerate_all_cliques(G)) :
+#  print k
+
+#print "nb max cliques", Max_num_clique(N)
+
+#print "score clique : ", clique_score(G)
+
+print deviance_matrix3
