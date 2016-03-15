@@ -15,9 +15,11 @@ class genome:
 		# to symmetrize the matrix
 		for i in xrange(self.nb_gene):
 			for j in xrange(i):
-				self.genome[i,j] = self.genome[j,i]
+				self.genome[i,j] = 0
 			self.genome[i,i] = 1
-		
+		print self.genome
+
+		self.nb_fig = 1
 
 	####################################################
 	# function to update the matrix
@@ -25,12 +27,12 @@ class genome:
 	def UpdateMatrix(self, proba_matrix):
 		for i in xrange(self.nb_gene):
 			for j in xrange(i):
-				if proba_matrix[i,j] < 0:
-					self.genome[i,j], self.genome[j,i] = abs(self.genome[i,j]-1), abs(self.genome[i,j]-1)
+				if proba_matrix[j,i] < 0:
+					self.genome[j,i] = abs(self.genome[j,i]-1)
 
-				if proba_matrix[i,j] == 0:
+				if proba_matrix[j,i] == 0:
 					if r.rand() < 0.5:
-						self.genome[i,j], self.genome[j,i] = abs(self.genome[i,j]-1), abs(self.genome[i,j]-1)
+						self.genome[j,i] = abs(self.genome[i,j]-1)
 
 
 
@@ -46,13 +48,14 @@ class genome:
 
 		for i in xrange(self.nb_gene):
 			for j in xrange(i+1):
-				if self.genome[i,j] == 1:
+				if self.genome[j,i] == 1:
 					G.add_edge(i,j)
 
 		position = nx.circular_layout(G)
 
 
-		fig = plt.figure()
+		fig = plt.figure(self.nb_fig)
+		self.nb_fig += 1
 
 		list_deg = np.array(nx.degree(G).values())
 
@@ -62,18 +65,17 @@ class genome:
 		nx.draw_networkx_labels(G,pos=position)
 		plt.draw()
 
-		if itteration != False:
+		if itteration != False and save == True:
+
 			plt.title('graph for itteration : %d'%itteration)
+			plt.savefig('graph_itteration_%d'%itteration)
 
-			if save == True:
-				plt.savefig('graph_itteration_%d'%itteration)
-
-		if save == True:
-			fig.savefig('graph')
+		if save == True and itteration == False:
+			plt.title('Graph')
+			plt.savefig('graph')
 
 n = 10
 a = r.rand(n,n) * r.choice([-1, 1], size=(n,n))
 G = genome(n)
-G.draw()
-G.UpdateMatrix(a)
-G.draw(1, True)
+
+plt.show()
