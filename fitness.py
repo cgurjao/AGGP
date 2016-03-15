@@ -1,7 +1,12 @@
+###########################################
+#########  Import all libraries  ##########
+###########################################
 import networkx as nx
 from random import *
 import numpy as numpy
 import math
+import matplotlib.pyplot as plt
+import numpy as np
 try:
     import matplotlib.pyplot as plt
 except:
@@ -16,8 +21,11 @@ except ImportError:
 import networkx
 from networkx.utils.decorators import *
 
+###########################################
+#######  Define global parameters  ########
+###########################################
 ##Define number of nodes
-N = 5
+N = 10
 ##Scale-free network parameters
 gamma = 2.2
 
@@ -35,10 +43,6 @@ for i in xrange(N):
 			genome[i][j] = 1
 		if i == j:
 			genome[i][j] = 1
-		
-##Custom genome for tests
-#genome = [[1, 0, 0, 0, 0],[0, 1, 0, 1, 1],[0, 0, 1, 1, 1],[0, 1, 1, 1, 0],[0, 1, 1, 0, 1]]
-
 
 ###########################################
 ###### Generate nx-compatible graph #######
@@ -56,11 +60,8 @@ for i in xrange(N):
 			G.add_edge(i,j)
 
 ############################################
-# Draw graph
+#############  Draw graph ################## 
 ############################################
-#print genome
-#print G.number_of_edges()
-#print G.edges()
 
 ##Uncomment to draw graph
 '''
@@ -89,30 +90,39 @@ def average_shortest(g):
 
 avg = 0.0
 for g in nx.connected_component_subgraphs(G):
-	avg = float(avg) + float(average_shortest(g))
-
-#Calculate deviance of path length for each gene
-deviance_path = []
-for g in nx.connected_component_subgraphs(G):
-	for node in g:
-        	    path_length=nx.single_source_dijkstra_path_length(g, node)
-        	    deviance_path.append(sum(path_length.values())/len(g) - avg)
-
-#print genome
-print deviance_path
-
-##Uncomment to draw graph
-
-pos = nx.spring_layout(G)
-nx.draw(G, pos)
-node_labels = nx.get_node_attributes(G,'state')
-nx.draw_networkx_labels(G, pos, labels = node_labels)
-##Uncomment to save figure
-#plt.savefig("simple_path.png")
-plt.show() 			
+	avg = float(avg) + float(average_shortest(g))			
 
 print "\nScore small-world!"
 print "Average of all shortest paths is %f \n" %avg
+
+##Calculate deviance of path length for each gene
+deviance_path = []
+gene_number = []
+for g in nx.connected_component_subgraphs(G):
+	for node in g:
+        	    path_length=nx.single_source_dijkstra_path_length(g, node)
+		    n=len(g)
+    		    if n>1:
+		    	deviance_path.append(sum(path_length.values())/float(n-1)-avg)
+    		    else:
+		    	deviance_path.append(0)
+		    gene_number.append(node)
+
+gene_number, deviance_path = zip(*sorted(zip(gene_number, deviance_path)))
+
+#Score matrix to optimize
+deviance_matrix1 = numpy.zeros((N,N))
+for i in range(0,N):
+    for j in range(0,N):
+		deviance_matrix1[i][j]=deviance_path[i] + deviance_path[j]
+
+deviance_matrix1
+
+#Create heatmap
+plt.pcolor(deviance_matrix1,cmap=plt.cm.Reds)
+plt.show()
+plt.close()
+
 
 ###########################################
 ########## Manipulate degrees #############
@@ -198,8 +208,8 @@ for i in xrange(len(degree_sequence)):
 			deviance_degree.append(observed[j]-expected[j])
 
 deviance_matrix2 = numpy.zeros((N,N))
-for i in xrange(N):
-	for j in xrange(N):
+for i in range(0,N):
+    for j in range(0,N):
 		deviance_matrix2[i][j]=deviance_degree[i] + deviance_degree[j]
 
 ##Uncomment to draw figure with expected and observed curve of proportions of each degree
@@ -228,6 +238,10 @@ print "Root Sum Square is %f \n" %RSS
 
 #Score matrix to optimize
 deviance_matrix2
+#Create heatmap
+plt.pcolor(deviance_matrix2,cmap=plt.cm.Reds)
+plt.show()
+plt.close()
 
 #######################################################
 # ----- Calculate the number of cliques in graph -----#
@@ -307,6 +321,10 @@ def matrix_score(G) :
   return deviance_matrix3
 
 deviance_matrix3 = matrix_score(G)
+#Create heatmap
+plt.pcolor(deviance_matrix3,cmap=plt.cm.Blues)
+plt.show()
+plt.close()
 
 ##############################################
 #### -------------- TESTS ---------------- ###
@@ -321,4 +339,3 @@ deviance_matrix3 = matrix_score(G)
 
 #print "score clique : ", clique_score(G)
 
-print deviance_matrix3
