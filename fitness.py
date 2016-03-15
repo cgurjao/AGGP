@@ -25,7 +25,7 @@ from networkx.utils.decorators import *
 #######  Define global parameters  ########
 ###########################################
 ##Define number of nodes
-N = 10
+N = 100
 ##Scale-free network parameters
 gamma = 2.2
 
@@ -110,16 +110,20 @@ for g in nx.connected_component_subgraphs(G):
 
 gene_number, deviance_path = zip(*sorted(zip(gene_number, deviance_path)))
 
-#Score matrix to optimize
+##Score matrix according to deviance
 deviance_matrix1 = numpy.zeros((N,N))
 for i in range(0,N):
     for j in range(0,N):
 		deviance_matrix1[i][j]=deviance_path[i] + deviance_path[j]
 
-deviance_matrix1
+##Normalize data
+if deviance_matrix1.max() != 0:
+	norm_deviance_matrix1 = deviance_matrix1/deviance_matrix1.max()
+else:
+	norm_deviance_matrix1 = deviance_matrix1
 
-#Create heatmap
-plt.pcolor(deviance_matrix1,cmap=plt.cm.Reds)
+##Create heatmap
+plt.pcolor(norm_deviance_matrix1,cmap=plt.cm.Reds)
 plt.show()
 plt.close()
 
@@ -236,12 +240,17 @@ nx.draw_networkx_edges(Gcc,pos,alpha=0.4)
 print "Score Scale-free!"
 print "Root Sum Square is %f \n" %RSS
 
-#Score matrix to optimize
-deviance_matrix2
-#Create heatmap
-plt.pcolor(deviance_matrix2,cmap=plt.cm.Reds)
+##Normalize data
+if deviance_matrix2.max() != 0:
+	norm_deviance_matrix2 = deviance_matrix2/deviance_matrix2.max()
+else:
+	norm_deviance_matrix2 = deviance_matrix2
+
+##Create heatmap
+plt.pcolor(norm_deviance_matrix2,cmap=plt.cm.Greens)
 plt.show()
 plt.close()
+
 
 #######################################################
 # ----- Calculate the number of cliques in graph -----#
@@ -302,7 +311,7 @@ def matrix_score(G) :
   deviance_matrix3 = numpy.zeros((N,N))    # the matrix scores
 
   for i in range(0,N):
-    for j in range(i,N) :
+    for j in range(0,N) :
       score_obs = clique_score(G)   # score of the actual graph
 
       if G.has_edge(i,j):
@@ -321,21 +330,18 @@ def matrix_score(G) :
   return deviance_matrix3
 
 deviance_matrix3 = matrix_score(G)
-#Create heatmap
-plt.pcolor(deviance_matrix3,cmap=plt.cm.Blues)
+##Normalize data
+if deviance_matrix3.max() != 0:
+	norm_deviance_matrix3 = deviance_matrix3/deviance_matrix3.max()
+else:
+	norm_deviance_matrix3 = deviance_matrix3
+
+##Create heatmap
+plt.pcolor(norm_deviance_matrix3,cmap=plt.cm.Reds)
 plt.show()
 plt.close()
 
-##############################################
-#### -------------- TESTS ---------------- ###
-##############################################
-#print "nombre de cliques >= 1 : ", nb_cliques(G)
 
-#print "liste des cliques : \n", 
-#for k in list(enumerate_all_cliques(G)) :
-#  print k
-
-#print "nb max cliques", Max_num_clique(N)
-
-#print "score clique : ", clique_score(G)
+print "Score Clique!"
+print "Average clique-number is %f \n" %clique_score(G)
 
