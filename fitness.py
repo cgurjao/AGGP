@@ -31,25 +31,7 @@ gamma = 2.2
 
 
 ###########################################
-#---------- Data Normalization -----------#
-###########################################
-def normalize_data(matrix):
-	if matrix.max() != 0:
-		norm_matrix = matrix/matrix.max()
-	else:
-		norm_matrix = matrix
-	return norm_matrix
-
-###########################################
-#-------------- Heat maps ----------------#
-###########################################
-def draw_heatmaps(matrix):
-	plt.pcolor(matrix,cmap=plt.cm.Reds)
-	plt.show()
-	plt.close()
-
-###########################################
-######### Generate random genome ##########
+#-----------General functions-------------#
 ###########################################
 def generate_genome():
 	##Genome with random numbers
@@ -76,14 +58,14 @@ def generate_genome():
 				G.add_edge(i,j)
 	return G, genome
 	
-G = generate_genome()[0]
-genome = generate_genome()[1]
+def draw_heatmaps(matrix, save=False, name = "noname"):
+	plt.pcolor(matrix,cmap=plt.cm.Reds)
+	plt.show()	
+	if save == True:	
+		plt.savefig("Heatmaps.png")
+	plt.close()
 
-############################################
-#############  Draw graph ################## 
-############################################
-
-def draw_graph(save=False):
+def draw_graph(save=False, name = "noname"):
 	pos = nx.spring_layout(G)
 	nx.draw(G, pos)
 	node_labels = nx.get_node_attributes(G,'state')
@@ -92,11 +74,18 @@ def draw_graph(save=False):
 		plt.savefig("simple_path.png")
 	plt.show() 		
 
+def normalize_data(matrix1):
+	if matrix1.max() != 0:
+		norm_matrix1 = matrix1/matrix1.max()
+	else:
+		norm_matrix1 = matrix1
+	return norm_matrix1
+
 ###########################################
-######## Average of shortest path #########
+############### Small world ###############
 ###########################################
 
-def average_shortest(G):
+def overall_average_shortest(G):
 	avg = 0.0
 	for g in nx.connected_component_subgraphs(G):
 		for node in g:
@@ -109,10 +98,6 @@ def average_shortest(G):
 			    return 0.0
 		avg = float(avg) + float(average_shortest(g))
 	return avg			
-
-avg = average_shortest(G)
-print "\nScore small-world!"
-print "Average of all shortest paths is %f \n" %avg
 
 def score_matrix_small_world(G):
 	##Calculate deviance of path length for each gene
@@ -135,15 +120,28 @@ def score_matrix_small_world(G):
 		deviance_matrix1[i][j]=deviance_path[i] + deviance_path[j]
 	return deviance_matrix1
 
-deviance_matrix1 = score_matrix_small_world(G)
-norm_deviance_matrix1 = normalize_data(deviance_matrix1)
-
-
 ###########################################
-########## Manipulate degrees #############
+############## Scale-free #################
 ###########################################
 
-def RSS(G):
+def overall_RSS(G):
+	degree_sequence = list(G.degree().values()) - numpy.ones(len(G.degree().values()))
+	##Sort by degrees
+	degree_sequence_sorted=sorted(degree_sequence,reverse=True)
+	RSS = 0.0
+	observed = []
+	expected = []
+	##Sort by unique degrees
+	unique_degrees=sorted(set(degree_sequence),reverse=True)
+	#print unique_degrees
+	## Calculate observed and expected values of proportions of each degree
+	for i in xrange(len(unique_degrees)):
+		observed.append(float(float(degree_sequence_sorted.count(unique_degrees[i]))))
+		expected.append(math.pow(unique_degrees[i], -gamma))
+		RSS = RSS + abs(observed[i] - expected[i])
+	return RSS
+
+def score_matrix_small_world(G):
 	degree_sequence = list(G.degree().values()) - numpy.ones(len(G.degree().values()))
 	##Sort by degrees
 	degree_sequence_sorted=sorted(degree_sequence,reverse=True)
@@ -165,15 +163,6 @@ def RSS(G):
 	ratio = ratio/len(unique_degrees)
 	for i in xrange(len(unique_degrees)):
 		observed[i] = observed[i]/ratio
-	return RSS, observed, expected
-
-RSS_score = RSS(G)[0]
-observed = RSS(G)[1]
-expected = RSS(G)[2]
-print "Score Scale-free!"
-print "Root Sum Square is %f \n" %RSS_score
-
-def score_matrix_small_world(G, observed, expected):
 	degree_sequence = list(G.degree().values()) - numpy.ones(len(G.degree().values()))
 	unique_degrees=sorted(set(degree_sequence),reverse=True)
 	##Associate deviance for each gene
@@ -186,10 +175,7 @@ def score_matrix_small_world(G, observed, expected):
 	for i in range(0,N):
 	    for j in range(0,N):
 		deviance_matrix2[i][j]=deviance_degree[i] + deviance_degree[j]
-	return deviance_matrix2
-
-deviance_matrix2 = score_matrix_small_world(G, observed, expected)
-normalize_data(deviance_matrix2)
+	return deviance_matrix2, observed, expected
 
 def draw_figure_scalefree(G, observed, expected):
 	degree_sequence = list(G.degree().values()) - numpy.ones(len(G.degree().values()))
@@ -211,9 +197,9 @@ def draw_figure_scalefree(G, observed, expected):
 	nx.draw_networkx_edges(Gcc,pos,alpha=0.4)
 	plt.show()
 
-#######################################################
-# ----- Calculate the number of cliques in graph -----#
-#######################################################
+###########################################
+##############   Clique   #################
+###########################################
 def enumerate_all_cliques(G): # list all cliques in G
   index = {}
   nbrs = {}
@@ -236,49 +222,37 @@ def enumerate_all_cliques(G): # list all cliques in G
                         filter(nbrs[u].__contains__,
                                islice(cnbrs, i + 1, None))))
 
-
 def nb_cliques(G) : # return the nomber of clique with minimum size k
   clique_list = []
   for clique in enumerate_all_cliques(G) :
     clique_list.append(clique)
   return len(clique_list)
 
-
-
-###########################################
-#---------- Clique score graph -----------#
-###########################################
 def Max_num_clique(N) : # Maximum number of cliques
   max_num_clique = 0
   for i in xrange(N):
     max_num_clique = max_num_clique + (math.factorial(N)/(math.factorial(i)*math.factorial(N-i)))
   return max_num_clique
 
-def clique_score(G) :  # Clique Score 
+def overall_clique_score(G) :  # Clique Score 
   return float(nb_cliques(G)/float(Max_num_clique(N)))
 
-
-
-###########################################
-#---------- Matrix score graph -----------#
-###########################################
 # if m[i,j] < 0 : the interaction between i and j must be created if unexisting,
 # or deleted if existing
 # if m[i,j] > : the (un)interaction between i and j must be kept as it is
-
 def matrix_score(G) :
   deviance_matrix3 = numpy.zeros((N,N))    # the matrix scores
 
   for i in range(0,N):
     for j in range(0,N) :
-      score_obs = clique_score(G)   # score of the actual graph
+      score_obs = overall_clique_score(G)   # score of the actual graph
 
       if G.has_edge(i,j):
         G.remove_edge(i,j)
       else :
         G.add_edge(i,j)
 
-      score_inv = clique_score(G)   # score of the modified graph (interaction i-j added or deleted)
+      score_inv = overall_clique_score(G)   # score of the modified graph (interaction i-j added or deleted)
 
       deviance_matrix3[i,j] = float(score_obs - score_inv)
 
@@ -288,15 +262,45 @@ def matrix_score(G) :
         G.add_edge(i,j)      
   return deviance_matrix3
 
-deviance_matrix3 = matrix_score(G)
-##Normalize data
-if deviance_matrix3.max() != 0:
-	norm_deviance_matrix3 = deviance_matrix3/deviance_matrix3.max()
-else:
-	norm_deviance_matrix3 = deviance_matrix3
+###########################################
+###############   TEST   ##################
+###########################################
+#Generate graph
+G = generate_genome()[0]
+#Generate genome
+genome = generate_genome()[1]
 
+############ Small-World ##################
+#Average score for small-world parameter
+avg = overall_average_shortest(G)
+print "\nScore small-world!"
+print "Average of all shortest paths is %f \n" %avg
+#Score matrix for small-world parameter
+deviance_matrix1 = score_matrix_small_world(G)
+norm_deviance_matrix1 = normalize_data(deviance_matrix1[0])
+
+############ Scale-free ###################
+#Average score for scale-free parameter
+RSS_score = overall_RSS(G)
+print "Score Scale-free!"
+print "Root Sum Square is %f \n" %RSS_score
+#Score matrix for small-world parameter
+deviance_matrix2 = score_matrix_small_world(G)[0]
+norm_deviance_matrix2 = normalize_data(deviance_matrix2)
+#Draw figure for scale-free
+observed = score_matrix_small_world(G)[1]
+expected = score_matrix_small_world(G)[2]
+draw_figure_scalefree(G, observed, expected)
+
+############### Clique ###################
+#Average score for scale-free parameter
+score_clique = overall_clique_score(G)
 print "Score Clique!"
-print "Average clique-number is %f \n" %clique_score(G)
+print "Average clique-number is %f \n" %score_clique
+#Score matrix for small-world parameter
+deviance_matrix3 = matrix_score(G)
+norm_deviance_matrix3 = normalize_data(deviance_matrix3)
 
-
-
+###### Output of this algorithm ##########
+Overall_score_matrix = norm_deviance_matrix1 +norm_deviance_matrix2 + norm_deviance_matrix3
+draw_heatmaps(Overall_score_matrix)
