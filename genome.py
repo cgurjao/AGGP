@@ -82,7 +82,7 @@ class genome:
 
 
 
-n = 10
+n = 100
 a = r.rand(n,n) * r.choice([-1, 1], size=(n,n))
 Gen = genome(n)
 
@@ -90,9 +90,11 @@ Gen = genome(n)
 
 compteur = 0
 
-for i in xrange(10):
-	S0 = fitness.matrix_score(Gen.graph())
+for i in xrange(100):
+	S0 = fitness.score_matrix_scale_free(Gen.graph())[0]
 	Gen.UpdateMatrix(S0)
 	compteur +=1
+	fitness.draw_figure_scalefree(Gen.graph(), fitness.score_matrix_scale_free(Gen.graph())[1],fitness. score_matrix_scale_free(Gen.graph())[2], compteur)
+	print compteur
 
 print "\n",Gen.genome

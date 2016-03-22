@@ -25,10 +25,9 @@ from networkx.utils.decorators import *
 #######  Define global parameters  ########
 ###########################################
 ##Define number of nodes
-N = 10
+N = 100
 ##Scale-free network parameters
 gamma = 2.2
-
 
 ###########################################
 #-----------General functions-------------#
@@ -141,7 +140,7 @@ def overall_RSS(G):
 		RSS = RSS + abs(observed[i] - expected[i])
 	return RSS
 
-def score_matrix_small_world(G):
+def score_matrix_scale_free(G):
 	degree_sequence = list(G.degree().values()) - numpy.ones(len(G.degree().values()))
 	##Sort by degrees
 	degree_sequence_sorted=sorted(degree_sequence,reverse=True)
@@ -177,7 +176,7 @@ def score_matrix_small_world(G):
 		deviance_matrix2[i][j]=deviance_degree[i] + deviance_degree[j]
 	return deviance_matrix2, observed, expected
 
-def draw_figure_scalefree(G, observed, expected):
+def draw_figure_scalefree(G, observed, expected, compt = 0):
 	degree_sequence = list(G.degree().values()) - numpy.ones(len(G.degree().values()))
 	##Sort by degrees
 	degree_sequence_sorted=sorted(degree_sequence,reverse=True)
@@ -195,7 +194,9 @@ def draw_figure_scalefree(G, observed, expected):
 	plt.axis('off')
 	nx.draw_networkx_nodes(Gcc,pos,node_size=20)
 	nx.draw_networkx_edges(Gcc,pos,alpha=0.4)
-	plt.show()
+	name = "Iteration %d .png" %compt
+	plt.savefig(name)
+	plt.close()
 
 ###########################################
 ##############   Clique   #################
@@ -269,7 +270,7 @@ def matrix_score(G) :
 G = generate_genome()[0]
 #Generate genome
 genome = generate_genome()[1]
-
+'''
 ############ Small-World ##################
 #Average score for small-world parameter
 avg = overall_average_shortest(G)
@@ -278,19 +279,18 @@ print "Average of all shortest paths is %f \n" %avg
 #Score matrix for small-world parameter
 deviance_matrix1 = score_matrix_small_world(G)
 norm_deviance_matrix1 = normalize_data(deviance_matrix1[0])
-
 ############ Scale-free ###################
 #Average score for scale-free parameter
 RSS_score = overall_RSS(G)
 print "Score Scale-free!"
 print "Root Sum Square is %f \n" %RSS_score
 #Score matrix for small-world parameter
-deviance_matrix2 = score_matrix_small_world(G)[0]
+deviance_matrix2 = score_matrix_scale_free(G)[0]
 norm_deviance_matrix2 = normalize_data(deviance_matrix2)
 #Draw figure for scale-free
-observed = score_matrix_small_world(G)[1]
-expected = score_matrix_small_world(G)[2]
-draw_figure_scalefree(G, observed, expected)
+observed = score_matrix_scale_free(G)[1]
+expected = score_matrix_scale_free(G)[2]
+#draw_figure_scalefree(G, observed, expected)
 
 ############### Clique ###################
 #Average score for scale-free parameter
@@ -302,5 +302,5 @@ deviance_matrix3 = matrix_score(G)
 norm_deviance_matrix3 = normalize_data(deviance_matrix3)
 
 ###### Output of this algorithm ##########
-Overall_score_matrix = norm_deviance_matrix1 +norm_deviance_matrix2 + norm_deviance_matrix3
-draw_heatmaps(Overall_score_matrix)
+Overall_score_matrix = norm_deviance_matrix1/3 +norm_deviance_matrix2/3 + norm_deviance_matrix3/3
+#draw_heatmaps(Overall_score_matrix)'''
