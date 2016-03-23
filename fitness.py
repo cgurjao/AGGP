@@ -2,23 +2,15 @@
 #########  Import all libraries  ##########
 ###########################################
 import networkx as nx
-from random import *
-import numpy as numpy
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-try:
-    import matplotlib.pyplot as plt
-except:
-    raise
-
 from collections import deque
 from itertools import chain, islice
 try:
     from itertools import ifilter as filter
 except ImportError:
     pass
-import networkx
 from networkx.utils.decorators import *
 
 ###########################################
@@ -34,7 +26,7 @@ gamma = 2.2
 ###########################################
 def generate_genome():
 	##Genome with random numbers
-	genome = numpy.reshape(numpy.random.random_integers(0,1,size=N*N),(N,N))
+	genome = np.reshape(np.random.random_integers(0,1,size=N*N),(N,N))
 	##To symmetrize the matrix
 	genome = (genome + genome.T)/2
 	##Put all non value to 1 and fill the diagonal
@@ -113,7 +105,7 @@ def score_matrix_small_world(G):
 			    gene_number.append(node)
 	gene_number, deviance_path = zip(*sorted(zip(gene_number, deviance_path)))
 	##Score matrix according to deviance
-	deviance_matrix1 = numpy.zeros((N,N))
+	deviance_matrix1 = np.zeros((N,N))
 	for i in range(0,N):
 	    for j in range(0,N):
 		deviance_matrix1[i][j]=deviance_path[i] + deviance_path[j]
@@ -124,7 +116,7 @@ def score_matrix_small_world(G):
 ###########################################
 
 def overall_RSS(G):
-	degree_sequence = list(G.degree().values() - numpy.ones(len(G.degree().values())))
+	degree_sequence = list(G.degree().values() - np.ones(len(G.degree().values())))
 	##Sort by degrees
 	RSS = 0.0
 
@@ -139,7 +131,7 @@ def overall_RSS(G):
 	return RSS
 
 def score_matrix_scale_free(G):
-	degree_sequence = list(G.degree().values()) - numpy.ones(len(G.degree().values()))
+	degree_sequence = list(G.degree().values()) - np.ones(len(G.degree().values()))
 	##Sort by degrees
 	degree_sequence_sorted=sorted(degree_sequence,reverse=True)
 	RSS = 0.0
@@ -160,7 +152,7 @@ def score_matrix_scale_free(G):
 	ratio = ratio/len(unique_degrees)
 	for i in xrange(len(unique_degrees)):
 		observed[i] = observed[i]/ratio
-	degree_sequence = list(G.degree().values()) - numpy.ones(len(G.degree().values()))
+	degree_sequence = list(G.degree().values()) - np.ones(len(G.degree().values()))
 	unique_degrees=sorted(set(degree_sequence),reverse=True)
 	##Associate deviance for each gene
 	deviance_degree = []
@@ -168,14 +160,14 @@ def score_matrix_scale_free(G):
 		for j in xrange(len(unique_degrees)):
 			if (degree_sequence[i] == unique_degrees[j]):
 				deviance_degree.append(observed[j]-expected[j])
-	deviance_matrix2 = numpy.zeros((N,N))
+	deviance_matrix2 = np.zeros((N,N))
 	for i in range(0,N):
 	    for j in range(0,N):
 		deviance_matrix2[i][j]=deviance_degree[i] + deviance_degree[j]
 	return deviance_matrix2, observed, expected
 
 def draw_figure_scalefree(G, observed, expected, compt = 0):
-	degree_sequence = list(G.degree().values()) - numpy.ones(len(G.degree().values()))
+	degree_sequence = list(G.degree().values()) - np.ones(len(G.degree().values()))
 	##Sort by degrees
 	degree_sequence_sorted=sorted(degree_sequence,reverse=True)
 	##Sort by unique degrees
@@ -240,7 +232,7 @@ def overall_clique_score(G) :  # Clique Score
 # or deleted if existing
 # if m[i,j] > : the (un)interaction between i and j must be kept as it is
 def matrix_score(G) :
-  deviance_matrix3 = numpy.zeros((N,N))    # the matrix scores
+  deviance_matrix3 = np.zeros((N,N))    # the matrix scores
 
   for i in range(0,N):
     for j in range(0,N) :
