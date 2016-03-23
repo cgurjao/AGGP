@@ -267,40 +267,53 @@ def matrix_score(G) :
 ###############   TEST   ##################
 ###########################################
 #Generate graph
-G = generate_genome()[0]
+#G = generate_genome()[0]
 #Generate genome
-genome = generate_genome()[1]
-'''
+#genome = generate_genome()[1]
+
 ############ Small-World ##################
 #Average score for small-world parameter
-avg = overall_average_shortest(G)
-print "\nScore small-world!"
-print "Average of all shortest paths is %f \n" %avg
+#avg = overall_average_shortest(G)
+#print "\nScore small-world!"
+#print "Average of all shortest paths is %f \n" %avg
 #Score matrix for small-world parameter
-deviance_matrix1 = score_matrix_small_world(G)
-norm_deviance_matrix1 = normalize_data(deviance_matrix1[0])
+#deviance_matrix1 = score_matrix_small_world(G)
+#norm_deviance_matrix1 = normalize_data(deviance_matrix1[0])
 ############ Scale-free ###################
 #Average score for scale-free parameter
-RSS_score = overall_RSS(G)
-print "Score Scale-free!"
-print "Root Sum Square is %f \n" %RSS_score
+#RSS_score = overall_RSS(G)
+#print "Score Scale-free!"
+#print "Root Sum Square is %f \n" %RSS_score
 #Score matrix for small-world parameter
-deviance_matrix2 = score_matrix_scale_free(G)[0]
-norm_deviance_matrix2 = normalize_data(deviance_matrix2)
+#deviance_matrix2 = score_matrix_scale_free(G)[0]
+#norm_deviance_matrix2 = normalize_data(deviance_matrix2)
 #Draw figure for scale-free
-observed = score_matrix_scale_free(G)[1]
-expected = score_matrix_scale_free(G)[2]
+#observed = score_matrix_scale_free(G)[1]
+#expected = score_matrix_scale_free(G)[2]
 #draw_figure_scalefree(G, observed, expected)
 
 ############### Clique ###################
 #Average score for scale-free parameter
-score_clique = overall_clique_score(G)
-print "Score Clique!"
-print "Average clique-number is %f \n" %score_clique
+#score_clique = overall_clique_score(G)
+#print "Score Clique!"
+#print "Average clique-number is %f \n" %score_clique
 #Score matrix for small-world parameter
-deviance_matrix3 = matrix_score(G)
-norm_deviance_matrix3 = normalize_data(deviance_matrix3)
+#deviance_matrix3 = matrix_score(G)
+#norm_deviance_matrix3 = normalize_data(deviance_matrix3)
 
 ###### Output of this algorithm ##########
-Overall_score_matrix = norm_deviance_matrix1/3 +norm_deviance_matrix2/3 + norm_deviance_matrix3/3
-#draw_heatmaps(Overall_score_matrix)'''
+#Overall_score_matrix = norm_deviance_matrix1/3 +norm_deviance_matrix2/3 + norm_deviance_matrix3/3
+#draw_heatmaps(Overall_score_matrix)
+
+def fitness_score(G):
+	avg = overall_average_shortest(G)
+	print "\nScore small-world!"
+	print "Average of all shortest paths is %f \n" %avg
+	RSS_score = overall_RSS(G)
+	print "Score Scale-free!"
+	print "Root Sum Square is %f \n" %RSS_score
+	#score_clique = overall_clique_score(G)
+	#print "Score Clique!"
+	#print "Average clique-number is %f \n" %score_clique
+	fitness = avg+RSS_score
+	return fitness
