@@ -267,7 +267,7 @@ def matrix_score(G) :
 ###############   TEST   ##################
 ###########################################
 #Generate graph
-#G = generate_genome()[0]
+G = generate_genome()[0]
 #Generate genome
 #genome = generate_genome()[1]
 
@@ -315,5 +315,10 @@ def fitness_score(G):
 	#score_clique = overall_clique_score(G)
 	#print "Score Clique!"
 	#print "Average clique-number is %f \n" %score_clique
-	fitness = avg+RSS_score
+	fitness = 0
+	if avg+RSS_score != 0:
+		fitness = 1/(avg+RSS_score)
+	print fitness
 	return fitness
+
+fitness_score(G)
