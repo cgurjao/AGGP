@@ -34,7 +34,6 @@ class genome:
 	def UpdateMatrix(self):
 		for i in xrange(self.nb_genes):
 			for j in xrange(i):
-				random_float = r.random()
 				if r.random() < 0.05:
 					self.genome[j,i] = abs(self.genome[j,i]-1)
 
@@ -44,34 +43,13 @@ class genome:
 	
 	def CrossingOver(self, M1, M2):        
 
-		b = r.binomial(2, 1/2.)
 		n = self.nb_genes
-		if b == 0:
-			# to do the crossing over with a line
-			line = r.randint(n)
+		# to do the crossing over with a line
+		line = r.randint(n)
 
-			lineint = np.array(M1[line,:])
-			M1[line,:] = np.array(M2[line, :])
-			M2[line,:] = lineint
-
-		if b == 1:
-			# to do it with a submatrix
-			a = r.randint(n, size=2)
-			i,j = min(a), max(a)
-
-			mini, minj = i+n/4, j+n/4
-
-			if mini > n-1:
-				mini = i
-				i -= n/4
-
-			if minj > n-1:
-				minj = j
-				j-= n/4
-
-			Mint = np.array(M1[i:mini, j:minj])
-			M1[i:mini, j:minj] = np.array(M2[i:mini, j:minj])
-			M2[i:mini, j:minj] = Mint
+		lineint = np.array(M1[line,:])
+		M1[line,:] = np.array(M2[line, :])
+		M2[line,:] = lineint
 
 		return M1, M2
 
@@ -79,19 +57,6 @@ class genome:
 
 	#___________________________________________________	
 	# functions to draw the graph
-
-
-
-
-
-
-
-
-
-	####################################################
-	# function to draw the graph
-	####################################################
-
 	def graph(self):
 		# to construct the graph
 		G = nx.Graph()
@@ -107,9 +72,7 @@ class genome:
 	def draw(self, graph, itteration=False, save=False):
 		# if you use the option save = True, you will save also all the past graph but not the future graph
 
-		
 		position = nx.circular_layout(G)
-
 
 		fig = plt.figure(self.nb_fig)
 		self.nb_fig += 1
@@ -144,13 +107,10 @@ class population:
 		self.nb_genomes = number_genomes
 
 		# List of genomes
-		self.pop = []
-		for i in xrange(number_genomes):
-			g = genome(number_genes)
-			self.pop.append(g)
+		self.pop = [genome(number_genes) for i in xrange(number_genomes)]
 
 		# Generation number...
-		self.gen = 0  
+		self.gen = 0
 
 
 
@@ -200,30 +160,13 @@ P = population(nb_genomes,nb_genes)
 for i in xrange(10):
 	P.new_generation()
 
-'''
+
 n = 50
 a = r.rand(n,n) * r.choice([-1, 1], size=(n,n))
 Gen = genome(n)
 
-#plt.show()
-=======
 
-# n = 10
-# a = r.rand(n,n) * r.choice([-1, 1], size=(n,n))
-# Gen = genome(n)
-# Gen.UpdateMatrix(a)
-# print Gen.genome
->>>>>>> Stashed changes
 
-# #plt.show()
-
-<<<<<<< Updated upstream
-for i in xrange(100):
-	S0 = fitness.score_matrix_scale_free(Gen.graph())[0]
-=======
-# compteur = 0
-
-'''     
 for i in xrange(1):
 	S0 = fitness.matrix_score(Gen.graph())
 	print S0
@@ -232,54 +175,3 @@ for i in xrange(1):
 	fitness.draw_figure_scalefree(Gen.graph(), fitness.score_matrix_scale_free(Gen.graph())[1],fitness. score_matrix_scale_free(Gen.graph())[2], compteur)
 	#print compteur
 
-print "\n",Gen.genome
-'''
-=======
-print "\n", compteur
-'''
-
-n = 10
-####################################################
-# function to do crossing over
-####################################################
-def CrossingOver(M1, M2):	
-	
-	b = r.binomial(2, 1/2.)
-	if b == 0:
-		# to do the crossing over with a line
-		line = r.randint(n)
-
-		lineint = np.array(M1[line,:])
-		M1[line,:] = np.array(M2[line, :])
-		M2[line,:] = lineint
-
-
-	if b == 1:
-		# to do it with a submatrix
-		a = r.randint(n, size=2)
-		i,j = min(a), max(a)
-
-		mini, minj = i+n/4, j+n/4
-
-		if mini > n-1:
-			mini = i
-			i -= n/4
-
-		if minj > n-1:
-			minj = j
-			j-= n/4
-
-		Mint = np.array(M1[i:mini, j:minj])
-		M1[i:mini, j:minj] = np.array(M2[i:mini, j:minj])
-		M2[i:mini, j:minj] = Mint
-
-
-	
-	return M1, M2
-
-M1 = genome(n).genome
-M2 = genome(n).genome
-
-
-
-CrossingOver(M1, M2)
