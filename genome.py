@@ -80,6 +80,18 @@ class genome:
 	#___________________________________________________	
 	# functions to draw the graph
 
+
+
+
+
+
+
+
+
+	####################################################
+	# function to draw the graph
+	####################################################
+
 	def graph(self):
 		# to construct the graph
 		G = nx.Graph()
@@ -123,6 +135,7 @@ class genome:
 #=============================================================================
 #								POPULATION CLASS
 #=============================================================================
+
 
 class population:
 	def __init__(self, number_genomes, number_genes):
@@ -193,11 +206,27 @@ a = r.rand(n,n) * r.choice([-1, 1], size=(n,n))
 Gen = genome(n)
 
 #plt.show()
+=======
 
-compteur = 0
+# n = 10
+# a = r.rand(n,n) * r.choice([-1, 1], size=(n,n))
+# Gen = genome(n)
+# Gen.UpdateMatrix(a)
+# print Gen.genome
+>>>>>>> Stashed changes
 
+# #plt.show()
+
+<<<<<<< Updated upstream
 for i in xrange(100):
 	S0 = fitness.score_matrix_scale_free(Gen.graph())[0]
+=======
+# compteur = 0
+
+'''     
+for i in xrange(1):
+	S0 = fitness.matrix_score(Gen.graph())
+	print S0
 	Gen.UpdateMatrix(S0)
 	compteur +=1
 	fitness.draw_figure_scalefree(Gen.graph(), fitness.score_matrix_scale_free(Gen.graph())[1],fitness. score_matrix_scale_free(Gen.graph())[2], compteur)
@@ -205,3 +234,52 @@ for i in xrange(100):
 
 print "\n",Gen.genome
 '''
+=======
+print "\n", compteur
+'''
+
+n = 10
+####################################################
+# function to do crossing over
+####################################################
+def CrossingOver(M1, M2):	
+	
+	b = r.binomial(2, 1/2.)
+	if b == 0:
+		# to do the crossing over with a line
+		line = r.randint(n)
+
+		lineint = np.array(M1[line,:])
+		M1[line,:] = np.array(M2[line, :])
+		M2[line,:] = lineint
+
+
+	if b == 1:
+		# to do it with a submatrix
+		a = r.randint(n, size=2)
+		i,j = min(a), max(a)
+
+		mini, minj = i+n/4, j+n/4
+
+		if mini > n-1:
+			mini = i
+			i -= n/4
+
+		if minj > n-1:
+			minj = j
+			j-= n/4
+
+		Mint = np.array(M1[i:mini, j:minj])
+		M1[i:mini, j:minj] = np.array(M2[i:mini, j:minj])
+		M2[i:mini, j:minj] = Mint
+
+
+	
+	return M1, M2
+
+M1 = genome(n).genome
+M2 = genome(n).genome
+
+
+
+CrossingOver(M1, M2)
