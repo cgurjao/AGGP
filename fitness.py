@@ -116,12 +116,13 @@ def score_matrix_small_world(G):
 ###########################################
 
 def overall_RSS(G):
-	degree_sequence = list(G.degree().values() - np.ones(len(G.degree().values())))
+	degree_sequence = [i-1 for i in G.degree().values()]
 	##Sort by degrees
-	RSS = 0.0
+	RSS = 0.
 
 	##Sort by unique degrees
 	unique_degrees=set(degree_sequence)
+
 	#print unique_degrees
 	## Calculate observed and expected values of proportions of each degree
 	for i in unique_degrees:

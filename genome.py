@@ -24,7 +24,6 @@ class genome:
 			for j in xrange(i):
 				self.genome[i,j] = 0
 			self.genome[i,i] = 1
-		print self.genome
 
 		self.nb_fig = 1
 
@@ -123,7 +122,7 @@ class population:
 			g.UpdateMatrix()							# Do random mutation
 			rd = r.randint(self.nb_genomes) 					
 			if rd!=i:
-				g.genome,self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)   # Do random crossing over
+				g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)   # Do random crossing over
 			F.append(fitness.fitness_score(g.graph()))			# Calculate fitness for each ind
 		print "Generation number",self.gen,":\n","Fitness average",round(np.mean(F),7)
 
@@ -143,7 +142,6 @@ class population:
 	# Generates array of reproduction probabilities (one per genome)
 	def selection(self,fit_table,c):
 		order = np.argsort(fit_table)
-		ranks = np.argsort(order)
 		#print fit_table
 		#print order
 		reprod = []
@@ -159,6 +157,7 @@ nb_genomes = 10
 P = population(nb_genomes,nb_genes)
 for i in xrange(10):
 	P.new_generation()
+	
 
 
 n = 50
@@ -167,11 +166,11 @@ Gen = genome(n)
 
 
 
-for i in xrange(1):
-	S0 = fitness.matrix_score(Gen.graph())
-	print S0
-	Gen.UpdateMatrix(S0)
-	compteur +=1
-	fitness.draw_figure_scalefree(Gen.graph(), fitness.score_matrix_scale_free(Gen.graph())[1],fitness. score_matrix_scale_free(Gen.graph())[2], compteur)
-	#print compteur
+# for i in xrange(1):
+# 	S0 = fitness.matrix_score(Gen.graph())
+# 	print S0
+# 	Gen.UpdateMatrix(S0)
+# 	compteur +=1
+# 	fitness.draw_figure_scalefree(Gen.graph(), fitness.score_matrix_scale_free(Gen.graph())[1],fitness. score_matrix_scale_free(Gen.graph())[2], compteur)
+# 	#print compteur
 
