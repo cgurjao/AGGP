@@ -167,17 +167,39 @@ def score_matrix_scale_free(G):
 		deviance_matrix2[i][j]=deviance_degree[i] + deviance_degree[j]
 	return deviance_matrix2, observed, expected
 
-def draw_figure_scalefree(G, observed, expected, compt = 0):
+def draw_figure_scalefree(G,indiv = 0,compt = 0):
 	degree_sequence = list(G.degree().values()) - np.ones(len(G.degree().values()))
 	##Sort by degrees
 	degree_sequence_sorted=sorted(degree_sequence,reverse=True)
+	RSS = 0.0
+	observed = []
+	expected = []
+	expected_curve = []
 	##Sort by unique degrees
 	unique_degrees=sorted(set(degree_sequence),reverse=True)
+	#print unique_degrees
+	## Calculate observed and expected values of proportions of each degree
+	for i in xrange(len(unique_degrees)):
+		observed.append(float(float(degree_sequence_sorted.count(unique_degrees[i]))))
+		expected.append(math.pow(unique_degrees[i], -gamma))
+		RSS = RSS + abs(observed[i] - expected[i])
+	for i in range(1,100):
+		expected_curve.append(math.pow(i, -gamma))
+
+	##To calculate proportionnality coefficient between observed and expected values
+	ratio = 0.0
+	for i in xrange(len(unique_degrees)):
+		ratio = ratio + (observed[i]/expected[i])
+	ratio = ratio/len(unique_degrees)
+	for i in xrange(len(unique_degrees)):
+		observed[i] = observed[i]/ratio
 	plt.plot(unique_degrees, observed,marker='o')
-	plt.plot(unique_degrees, expected,marker='o')
-	plt.title("Degree proportion")
+	plt.plot(np.arange(1, 100, 1), expected_curve,marker='o')
+	plt.title("Individual %d" %indiv)
 	plt.ylabel("Proportion")
 	plt.xlabel("Degree")
+	plt.xlim(30,70)
+	plt.ylim(0,0.001)
 	## draw graph in inset
 	plt.axes([0.45,0.45,0.45,0.45])
 	Gcc=sorted(nx.connected_component_subgraphs(G), key = len, reverse=True)[0]
@@ -185,7 +207,7 @@ def draw_figure_scalefree(G, observed, expected, compt = 0):
 	plt.axis('off')
 	nx.draw_networkx_nodes(Gcc,pos,node_size=20)
 	nx.draw_networkx_edges(Gcc,pos,alpha=0.4)
-	name = "Iteration %d .png" %compt
+	name = "Indiv_%d _Iteration_%d .png" %(indiv, compt)
 	plt.savefig(name)
 	plt.close()
 

@@ -116,17 +116,20 @@ class population:
 	#__________________________________________________________________________
 	# Updating the population (mutations, crossing over, reproduction)
 
-	def new_generation(self):
+	def new_generation(self, compt):
 		F = []											# list of fitnesses
 		for i,g in enumerate(self.pop):					# For each individual
 			g.UpdateMatrix()							# Do random mutation
 			rd = r.randint(self.nb_genomes) 					
 			if rd!=i:
 				g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)   # Do random crossing over
-			F.append(fitness.fitness_score(g.graph()))			# Calculate fitness for each ind
-		print "Generation number",self.gen,":\n","Fitness average",round(np.mean(F),7)
+			F.append(fitness.fitness_score(g.graph()))			# Calculate fitness for each ind			# Calculate fitness for each ind
+			print "Iteration: %d, Individu: %d" %(compt, i)
+			#fitness.draw_figure_scalefree(g.graph(), i)
 
 		proba_rep = self.selection(F,0.95) 
+		#print proba_rep
+		print sum(proba_rep)
 		new_pop = []
 		for j in xrange(self.nb_genomes):
 			p = r.random()
@@ -142,23 +145,24 @@ class population:
 	# Generates array of reproduction probabilities (one per genome)
 	def selection(self,fit_table,c):
 		order = np.argsort(fit_table)
+		ranks = np.argsort(order)
 		#print fit_table
 		#print order
 		reprod = []
 		for i in xrange(len(fit_table)):
-			reprod.append((len(fit_table)*c**len(fit_table)-order[i])*((c-1))/(c**len(fit_table)-1))
+			N = len(fit_table)
+			r = ranks[i]+1
+			reprod.append(((c-1)/((c**N)-1))*c**(N-r))
 		return reprod
 
 #==============================================================================
 #									TESTS
 
-nb_genes = 50
+nb_genes = 100
 nb_genomes = 10
 P = population(nb_genomes,nb_genes)
-for i in xrange(10):
-	P.new_generation()
-	
-
+for i in xrange(100):
+	P.new_generation(i)
 
 n = 50
 a = r.rand(n,n) * r.choice([-1, 1], size=(n,n))
