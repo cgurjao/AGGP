@@ -7,6 +7,7 @@ import copy
 import random
 import bisect
 import collections
+from paramsGlob import *
 
 
 #=============================================================================
@@ -37,7 +38,7 @@ class genome:
 	def UpdateMatrix(self):
 		for i in xrange(self.nb_genes):
 			for j in xrange(i):
-				if r.random() < 0.05:
+				if r.random() <  mutation_rate:
 					self.genome[j,i] = abs(self.genome[j,i]-1)
 
 
@@ -50,10 +51,13 @@ class genome:
 		# to do the crossing over with a line
 		line = r.randint(n)
 
-		lineint = np.array(M1[line,:])
-		M1[line,:] = np.array(M2[line, :])
-		M2[line,:] = lineint
+		#lineint = np.array(M1[line,:])
+		#M1[line,:] = np.array(M2[line, :])
+		#M2[line,:] = lineint
 
+		lineint = np.copy(M1[line,:])
+		M1[line,:] = M2[line,:]
+		M2[line,:] = lineint
 		return M1, M2
 
 
@@ -123,16 +127,17 @@ class population:
 	def new_generation(self, compt):
 		F = []											# list of fitnesses
 		for i,g in enumerate(self.pop):					# For each individual
-			#g.UpdateMatrix()							# Do random mutation
+			g.UpdateMatrix()							# Do random mutation
 			rd = r.randint(self.nb_genomes) 					
-			if rd!=i:
-				g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)   # Do random crossing over
-			F.append(fitness.fitness_score(g.graph()))			# Calculate fitness for each ind			# Calculate fitness for each ind
+			#if rd!=i:
+				#g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)  # Do random crossing over
+			F.append(fitness.fitness_score(g.graph()))			# Calculate fitness for each ind
 			print "Iteration: %d, Individu: %d" %(compt, i)
-			fitness.draw_figure_scalefree(g.graph(), i, compt)
+			if i == 0:
+				fitness.draw_figure_scalefree(g.graph(), i, compt)
 
 		proba_rep = self.selection(F,0.7)
-		print sum(F)
+		#print sum(F)
 		new_pop = []
 		for j in xrange(self.nb_genomes):
 			p = r.random()
@@ -161,8 +166,7 @@ class population:
 #==============================================================================
 #									TESTS
 
-nb_genes = 1000
-nb_genomes = 100
+
 P = population(nb_genomes,nb_genes)
 fitness_vect = []
 iter_vect = []
@@ -170,7 +174,9 @@ for i in xrange(100):
 	fitness_vect.append(P.new_generation(i))
 	iter_vect.append(i)
 plt.plot(iter_vect,fitness_vect,marker='o')
-plt.show()
+plt.savefig("Evolution de la fitness")
+plt.close()
+
 n = 50
 a = r.rand(n,n) * r.choice([-1, 1], size=(n,n))
 Gen = genome(n)

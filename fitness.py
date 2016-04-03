@@ -12,14 +12,14 @@ try:
 except ImportError:
     pass
 from networkx.utils.decorators import *
+from paramsGlob import *
 
 ###########################################
 #######  Define global parameters  ########
 ###########################################
 ##Define number of nodes
-N = 50
+N = nb_genes
 ##Scale-free network parameters
-gamma = 2.2
 
 ###########################################
 #-----------General functions-------------#
@@ -226,8 +226,8 @@ def draw_figure_scalefree(G,indiv = 0,compt = 0):
 	plt.title("Individual %d" %indiv)
 	plt.ylabel("Proportion")
 	plt.xlabel("Degree")
-	plt.xlim(10,50)
-	plt.ylim(0,0.010)
+	plt.xlim(40,70)
+	plt.ylim(0,0.0010)
 	## draw graph in inset
 	plt.axes([0.45,0.45,0.45,0.45])
 	Gcc=sorted(nx.connected_component_subgraphs(G), key = len, reverse=True)[0]
@@ -347,7 +347,7 @@ G = generate_genome()[0]
 #draw_heatmaps(Overall_score_matrix)
 
 def fitness_score(G):
-	avg = 0#overall_average_shortest(G)
+	avg = overall_average_shortest(G)
 	#print "\nScore small-world!"
 	#print "Average of all shortest paths is %f \n" %avg
 	RSS_score = overall_RSS(G)
