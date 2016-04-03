@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 import numpy.random as r
 import fitness
 import copy
+import random
+import bisect
+import collections
+
 
 #=============================================================================
 #					GENOME CLASS
@@ -119,28 +123,27 @@ class population:
 	def new_generation(self, compt):
 		F = []											# list of fitnesses
 		for i,g in enumerate(self.pop):					# For each individual
-			g.UpdateMatrix()							# Do random mutation
+			#g.UpdateMatrix()							# Do random mutation
 			rd = r.randint(self.nb_genomes) 					
 			if rd!=i:
 				g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)   # Do random crossing over
 			F.append(fitness.fitness_score(g.graph()))			# Calculate fitness for each ind			# Calculate fitness for each ind
 			print "Iteration: %d, Individu: %d" %(compt, i)
-			#fitness.draw_figure_scalefree(g.graph(), i)
+			fitness.draw_figure_scalefree(g.graph(), i, compt)
 
-		proba_rep = self.selection(F,0.95) 
-		#print proba_rep
-		print sum(proba_rep)
+		proba_rep = self.selection(F,0.7)
+		print sum(F)
 		new_pop = []
 		for j in xrange(self.nb_genomes):
 			p = r.random()
 			i = len(proba_rep)-1
-			while p-proba_rep[i]>0 and i>=0:
+			while p-proba_rep[i]>0 and i>0:
+				p -= proba_rep[i]
 				i -= 1
 			new_pop.append(copy.deepcopy(self.pop[i]))
-
 		self.pop = new_pop
 		self.gen += 1
-
+		return sum(F)
 			
 	# Generates array of reproduction probabilities (one per genome)
 	def selection(self,fit_table,c):
@@ -158,12 +161,16 @@ class population:
 #==============================================================================
 #									TESTS
 
-nb_genes = 100
-nb_genomes = 10
+nb_genes = 1000
+nb_genomes = 100
 P = population(nb_genomes,nb_genes)
+fitness_vect = []
+iter_vect = []
 for i in xrange(100):
-	P.new_generation(i)
-
+	fitness_vect.append(P.new_generation(i))
+	iter_vect.append(i)
+plt.plot(iter_vect,fitness_vect,marker='o')
+plt.show()
 n = 50
 a = r.rand(n,n) * r.choice([-1, 1], size=(n,n))
 Gen = genome(n)

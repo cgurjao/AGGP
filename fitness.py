@@ -17,7 +17,7 @@ from networkx.utils.decorators import *
 #######  Define global parameters  ########
 ###########################################
 ##Define number of nodes
-N = 100
+N = 50
 ##Scale-free network parameters
 gamma = 2.2
 
@@ -116,19 +116,47 @@ def score_matrix_small_world(G):
 ###########################################
 
 def overall_RSS(G):
-	degree_sequence = [i-1 for i in G.degree().values()]
+	'''degree_sequence = [i-1 for i in G.degree().values()]
 	##Sort by degrees
 	RSS = 0.
 
 	##Sort by unique degrees
 	unique_degrees=set(degree_sequence)
 
+	degree_sequence_sorted=sorted(degree_sequence,reverse=True)
 	#print unique_degrees
 	## Calculate observed and expected values of proportions of each degree
 	for i in unique_degrees:
 		observed = degree_sequence.count(i)
 		expected = math.pow(i, -gamma)
 		RSS += abs(observed - expected)
+
+	for i in xrange(len(unique_degrees)):
+		observed[i] = observed[i]/ratio'''
+
+	degree_sequence = list(G.degree().values()) - np.ones(len(G.degree().values()))
+	##Sort by degrees
+	degree_sequence_sorted=sorted(degree_sequence,reverse=True)
+	RSS = 0.0
+	observed = []
+	expected = []
+	##Sort by unique degrees
+	unique_degrees=sorted(set(degree_sequence),reverse=True)
+	#print unique_degrees
+	## Calculate observed and expected values of proportions of each degree
+	for i in xrange(len(unique_degrees)):
+		observed.append(float(float(degree_sequence_sorted.count(unique_degrees[i]))))
+		expected.append(math.pow(unique_degrees[i], -gamma))
+	##To calculate proportionnality coefficient between observed and expected values
+	ratio = 0.0
+	for i in xrange(len(unique_degrees)):
+		ratio = ratio + (observed[i]/expected[i])
+	ratio = ratio/len(unique_degrees)
+	for i in xrange(len(unique_degrees)):
+		observed[i] = observed[i]/ratio
+
+	for i in xrange(len(unique_degrees)):
+		RSS = RSS + abs(observed[i] - expected[i])
 	return RSS
 
 def score_matrix_scale_free(G):
@@ -198,8 +226,8 @@ def draw_figure_scalefree(G,indiv = 0,compt = 0):
 	plt.title("Individual %d" %indiv)
 	plt.ylabel("Proportion")
 	plt.xlabel("Degree")
-	plt.xlim(30,70)
-	plt.ylim(0,0.001)
+	plt.xlim(10,50)
+	plt.ylim(0,0.010)
 	## draw graph in inset
 	plt.axes([0.45,0.45,0.45,0.45])
 	Gcc=sorted(nx.connected_component_subgraphs(G), key = len, reverse=True)[0]
@@ -319,7 +347,7 @@ G = generate_genome()[0]
 #draw_heatmaps(Overall_score_matrix)
 
 def fitness_score(G):
-	avg = overall_average_shortest(G)
+	avg = 0#overall_average_shortest(G)
 	#print "\nScore small-world!"
 	#print "Average of all shortest paths is %f \n" %avg
 	RSS_score = overall_RSS(G)
@@ -331,8 +359,5 @@ def fitness_score(G):
 	fitness = 0
 	if avg+RSS_score != 0:
 		fitness = 1/(avg+RSS_score)
-	#print fitness
 	return fitness
-
-fitness_score(G)
 
