@@ -129,8 +129,8 @@ class population:
 		for i,g in enumerate(self.pop):					# For each individual
 			g.UpdateMatrix()							# Do random mutation
 			rd = r.randint(self.nb_genomes) 					
-			#if rd!=i:
-				#g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)  # Do random crossing over
+			if rd!=i:
+				g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)   # Do random crossing over
 			F.append(fitness.fitness_score(g.graph()))			# Calculate fitness for each ind
 			print "Iteration: %d, Individu: %d" %(compt, i)
 			if i == 0:
