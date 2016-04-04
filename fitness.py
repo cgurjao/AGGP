@@ -30,6 +30,15 @@ global val_ymin
 val_ymin = 0
 global val_ymax 
 val_ymax = 0 
+
+global val_xmin2
+val_xmin2 = 0
+global val_xmax2 
+val_xmax2 = 0
+global val_ymin2 
+val_ymin2 = 0
+global val_ymax2 
+val_ymax2 = 0 
 ###############
 #-----------General functions-------------#
 ###########################################
@@ -247,11 +256,13 @@ def draw_figure_scalefree(G,indiv = 0,compt = 0):
 	for i in xrange(len(unique_degrees)):
 		observed[i] = observed[i]/ratio
 
-	plt.plot(unique_degrees, observed,marker='o')
-	plt.plot(np.arange(1, 1000, 1), expected_curve,marker='o')
-	plt.title("Individual %d" %indiv)
+	plt.plot(unique_degrees, observed, 'ro')
+	plt.plot(np.arange(1, 1000, 1), expected_curve, marker = 'o')
 	plt.ylabel("Proportion")
 	plt.xlabel("Degree")
+
+	for i in xrange(len(unique_degrees)):
+		RSS = RSS + abs(observed[i] - expected[i])
 
 	global val_xmin
 	global val_ymin
@@ -272,7 +283,8 @@ def draw_figure_scalefree(G,indiv = 0,compt = 0):
 	plt.axis('off')
 	nx.draw_networkx_nodes(Gcc,pos,node_size=20)
 	nx.draw_networkx_edges(Gcc,pos,alpha=0.4)
-	name = "Indiv_%d _Iteration_%d .png" %(indiv, compt)
+	plt.title("Scale-free")#, score = %f" %RSS)
+	name = "z_RSS_Indiv_%d _Iteration_%d" %(indiv, compt)
 	plt.savefig(name)
 	plt.close()
 
@@ -415,7 +427,7 @@ def hierarchical_caracter(G) :
         ##To calculate proportionnality coefficient between observed (C(k)) and expected values (1/k)
         ratio = 0.0
         expected_curve = []
-        for i in range(len(unique_degrees) ):
+        for i in range(len(unique_degrees)):
                 ratio = ratio + ( C[i]/(1/float(unique_degrees[i])) )
                 expected_curve.append(1/float(unique_degrees[i]))
         ratio = ratio/len(unique_degrees)
@@ -426,9 +438,67 @@ def hierarchical_caracter(G) :
         
         score = 0
         for k in range(len(unique_degrees)) :
-                score += abs(observed[k] - 1/float(unique_degrees[k]))
+                score += abs(observed[k] - float(1/float(unique_degrees[k])))
         
         return score
+
+
+
+def draw_figure_hierarchical(G,indiv = 0,compt = 0):
+	kmin = min_degree(G)
+	kmax = max_degree(G)
+	C = []
+	unique_degrees = range(kmin, kmax + 1)
+	for k in unique_degrees :
+		nk = nx.degree(G).get(k)
+		Ck = numpy.zeros(nk)
+		nodes_of_degree_k = []
+		for noeud in nx.nodes(G):
+			if G.degree(noeud) == k :
+				nodes_of_degree_k.append(noeud)
+		for l in range(len(nodes_of_degree_k)) :
+			neighbors_subgraph = G.subgraph(G.neighbors( nodes_of_degree_k[l] ))
+			Ck[l] = neighbors_subgraph.number_of_edges() / float(k*(k-1)/2)
+		C.append( Ck.mean() )
+
+	ratio = 0.0
+	for i in range(len(unique_degrees)):
+		ratio = ratio + (C[i]/(1/float(unique_degrees[i])) )
+	ratio = ratio/len(unique_degrees)
+
+	observed = []
+	for i in xrange(len(unique_degrees)):
+		observed.append(C[i]/ratio)
+
+	score = 0
+	for k in range(len(unique_degrees)) :
+		score += abs(observed[k] - float(1/float(unique_degrees[k])))
+
+	expected_curve = []
+	for i in range(1,1000):
+		expected_curve.append(float(1/float(i)))
+        
+	global val_xmin2
+	global val_ymin2
+	global val_xmax2
+	global val_ymax2
+	if (val_xmin2==val_xmax2):
+		val_xmin2 = min(unique_degrees)
+		val_ymin2 = min(observed)
+		val_ymax2=  max(observed)
+		val_xmax2= max(unique_degrees)
+
+	#plt.plot(unique_degrees, C, marker='+', label = 'C(k)')
+	plt.title("Hierarchical character")#, score = %f" %score)
+	plt.plot(unique_degrees, observed, 'ro', label = 'C(k) / ratio_moyen(C(k) / 1/k)')
+	plt.plot(np.arange(1, 1000, 1), expected_curve, marker='o', label = '1/k')
+	plt.ylabel("Proportion of nodes")
+	plt.xlabel("Degree")
+	plt.xlim(val_xmin2 - val_xmin2/2, val_xmax2+val_xmax2/2)
+	plt.ylim(val_ymin2 - val_ymin2/2, val_ymax2 + val_ymax2/2)
+	name = "z_Clust_Indiv_%d _Iteration_%d" %(indiv, compt)
+	plt.savefig(name)
+	plt.close()
 
 def fitness_score(G):
 	avg = overall_average_shortest(G)

@@ -9,6 +9,7 @@ import bisect
 import collections
 from paramsGlob import *
 from operator import add
+import csv
 
 
 #=============================================================================
@@ -141,25 +142,32 @@ class population:
 		F = []		
 		temp_avg = []
 		temp_RSS = []	
-		temp_hier = []									# list of fitnesses
+		temp_hier = []	
+		res = []
+		avg = 0
+		RSS = 0
+		hier = 0								# list of fitnesses
 		for i,g in enumerate(self.pop):					# For each individual
 			g.UpdateMatrix()							# Do random mutation
 			rd = r.randint(self.nb_genomes) 					
 
 			#if rd!=i:
 				#g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)  # Do random crossing over
-			temp_avg.append(fitness.fitness_score(g.graph())[0])
-			temp_RSS.append(fitness.fitness_score(g.graph())[1])	# Calculate fitness for each ind
-			temp_hier.append(fitness.fitness_score(g.graph())[2])
+			res = fitness.fitness_score(g.graph())
+			temp_avg.append(res[0])
+			temp_RSS.append(res[1])	# Calculate fitness for each ind
+			temp_hier.append(res[2])
 
 			if rd!=i:
 				g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)   # Do random crossing over
-			F.append(fitness.fitness_score(g.graph()))			# Calculate fitness for each ind
-
 			print "Iteration: %d, Individu: %d" %(compt, i)
-			#if i == 0:
+			if i == 0:
 				#fitness.draw_figure_scalefree(g.graph(), i, compt)
-			g.draw(g.graph(), compt, i)
+				#fitness.draw_figure_hierarchical(g.graph(), i, compt)
+				avg = res[0]
+				RSS = res[1] 
+				hier = res[2]
+				#g.draw(g.graph(), compt, i)
 
 		ratio = 0
 		for i in xrange(len(temp_avg)):
@@ -189,7 +197,7 @@ class population:
 			new_pop.append(copy.deepcopy(self.pop[i]))
 		self.pop = new_pop
 		self.gen += 1
-		return sum(F)
+		return sum(F), avg, RSS, hier
 			
 	# Generates array of reproduction probabilities (one per genome)
 	def selection(self,fit_table,c):
@@ -213,11 +221,38 @@ class population:
 P = population(nb_genomes,nb_genes)
 fitness_vect = []
 iter_vect = []
+avg_vect = []
+RSS_vect = []
+avg_vect = []
+hier_vect = []
 for i in xrange(100):
-	fitness_vect.append(P.new_generation(i))
+	fitness_vect.append(P.new_generation(i)[0])
+	avg_vect.append(P.new_generation(i)[1])
+	RSS_vect.append(P.new_generation(i)[1])
+	hier_vect.append(P.new_generation(i)[1])
 	iter_vect.append(i)
+
+	csvfile = "Matrix"
+	with open(csvfile,"w") as output:
+		writer = csv.writer(output, lineterminator='\n')
+		writer.writerows(P.pop[0].genome)
+
 plt.plot(iter_vect,fitness_vect,marker='o')
 plt.savefig("Evolution de la fitness")
+plt.close()
+
+plt.plot(iter_vect,avg_vect,marker='o')
+plt.plot(iter_vect,math.log(nb_genes),marker='o')
+
+
+plt.plot(iter_vect,RSS_vect,marker='o')
+plt.plot(iter_vect,math.log(nb_genes),marker='o')
+
+
+plt.plot(iter_vect,hier_vect,marker='o')
+plt.plot(iter_vect,math.log(nb_genes),marker='o')
+
+plt.savefig("Evolution de avg_shortest")
 plt.close()
 
 n = 50
