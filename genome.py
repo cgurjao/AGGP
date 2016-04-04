@@ -8,6 +8,7 @@ import random
 import bisect
 import collections
 from paramsGlob import *
+from operator import add
 
 
 #=============================================================================
@@ -76,9 +77,20 @@ class genome:
 		return G
 
 
-	def draw(self, graph, itteration=False, save=False):
+	def draw(self, G, indiv = 0, iteration=0, save=True):
 		# if you use the option save = True, you will save also all the past graph but not the future graph
+		if indiv==0:
+			pos = nx.spring_layout(G)
+			nx.draw(G, pos)
+			node_labels = nx.get_node_attributes(G,'state')
+			nx.draw_networkx_labels(G, pos, labels = node_labels)
 
+			name = "Graph_Indiv_%d _Iteration_%d .png" %(indiv, iteration)
+			plt.savefig(name)
+			plt.close()
+
+
+'''
 		position = nx.circular_layout(G)
 
 		fig = plt.figure(self.nb_fig)
@@ -91,15 +103,16 @@ class genome:
 		nx.draw_networkx_edges(G, pos=position, alpha=0.2)
 		nx.draw_networkx_labels(G,pos=position)
 		plt.draw()
+		if iteration != 9999 and save == True:
 
-		if iteration != False and save == True:
+			name = "Graph_Indiv_%d _Iteration_%d .png" %(indiv, iteration)
+			plt.savefig(name)
+			plt.close()
 
-			plt.title('graph for iteration : %d'%iteration)
-			plt.savefig('graph_iteration_%d'%iteration)
-
-		if save == True and iteration == False:
+		if save == True and iteration == 9999:
 			plt.title('Graph')
 			plt.savefig('graph')
+			plt.close()'''
 
 
 #=============================================================================
@@ -125,19 +138,47 @@ class population:
 	# Updating the population (mutations, crossing over, reproduction)
 
 	def new_generation(self, compt):
-		F = []											# list of fitnesses
+		F = []		
+		temp_avg = []
+		temp_RSS = []	
+		temp_hier = []									# list of fitnesses
 		for i,g in enumerate(self.pop):					# For each individual
 			g.UpdateMatrix()							# Do random mutation
 			rd = r.randint(self.nb_genomes) 					
+
+			#if rd!=i:
+				#g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)  # Do random crossing over
+			temp_avg.append(fitness.fitness_score(g.graph())[0])
+			temp_RSS.append(fitness.fitness_score(g.graph())[1])	# Calculate fitness for each ind
+			temp_hier.append(fitness.fitness_score(g.graph())[2])
+
 			if rd!=i:
 				g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)   # Do random crossing over
 			F.append(fitness.fitness_score(g.graph()))			# Calculate fitness for each ind
+
 			print "Iteration: %d, Individu: %d" %(compt, i)
-			if i == 0:
-				fitness.draw_figure_scalefree(g.graph(), i, compt)
+			#if i == 0:
+				#fitness.draw_figure_scalefree(g.graph(), i, compt)
+			g.draw(g.graph(), compt, i)
+
+		ratio = 0
+		for i in xrange(len(temp_avg)):
+			ratio = ratio + (temp_avg[i]/temp_RSS[i])
+		ratio = ratio/len(temp_avg)
+		for i in xrange(len(temp_avg)):
+			temp_avg[i] = temp_avg[i]/ratio
+		for i in xrange(len(temp_avg)):
+			ratio = ratio + (temp_hier[i]/temp_RSS[i])
+		ratio = ratio/len(temp_avg)
+		for i in xrange(len(temp_avg)):
+			temp_hier[i] = temp_hier[i]/ratio
+
+		for i in xrange(len(temp_avg)):
+			F = map(add,temp_avg, temp_RSS)
+			F = map(add,F, temp_hier)
 
 		proba_rep = self.selection(F,0.7)
-		#print sum(F)
+		#bprint sum(F)
 		new_pop = []
 		for j in xrange(self.nb_genomes):
 			p = r.random()
@@ -162,6 +203,8 @@ class population:
 			r = ranks[i]+1
 			reprod.append(((c-1)/((c**N)-1))*c**(N-r))
 		return reprod
+
+
 
 #==============================================================================
 #									TESTS

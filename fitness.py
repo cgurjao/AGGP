@@ -13,6 +13,7 @@ except ImportError:
     pass
 from networkx.utils.decorators import *
 from paramsGlob import *
+import numpy
 
 ###########################################
 #######  Define global parameters  ########
@@ -21,7 +22,15 @@ from paramsGlob import *
 N = nb_genes
 ##Scale-free network parameters
 
-###########################################
+global val_xmin
+val_xmin = 0
+global val_xmax 
+val_xmax = 0
+global val_ymin 
+val_ymin = 0
+global val_ymax 
+val_ymax = 0 
+###############
 #-----------General functions-------------#
 ###########################################
 def generate_genome():
@@ -195,6 +204,22 @@ def score_matrix_scale_free(G):
 		deviance_matrix2[i][j]=deviance_degree[i] + deviance_degree[j]
 	return deviance_matrix2, observed, expected
 
+def my_func_val_xmin(x):
+     global val_xmin
+     val_xmin = x
+
+def my_func_val_xmax(x):
+     global val_xmax
+     val_xmax = x
+
+def my_func_val_ymin(x):
+     global val_ymin
+     val_ymin = x
+
+def my_func_val_ymax(x):
+     global val_ymax
+     val_ymax = x
+
 def draw_figure_scalefree(G,indiv = 0,compt = 0):
 	degree_sequence = list(G.degree().values()) - np.ones(len(G.degree().values()))
 	##Sort by degrees
@@ -211,7 +236,7 @@ def draw_figure_scalefree(G,indiv = 0,compt = 0):
 		observed.append(float(float(degree_sequence_sorted.count(unique_degrees[i]))))
 		expected.append(math.pow(unique_degrees[i], -gamma))
 		RSS = RSS + abs(observed[i] - expected[i])
-	for i in range(1,100):
+	for i in range(1,1000):
 		expected_curve.append(math.pow(i, -gamma))
 
 	##To calculate proportionnality coefficient between observed and expected values
@@ -221,13 +246,25 @@ def draw_figure_scalefree(G,indiv = 0,compt = 0):
 	ratio = ratio/len(unique_degrees)
 	for i in xrange(len(unique_degrees)):
 		observed[i] = observed[i]/ratio
+
 	plt.plot(unique_degrees, observed,marker='o')
-	plt.plot(np.arange(1, 100, 1), expected_curve,marker='o')
+	plt.plot(np.arange(1, 1000, 1), expected_curve,marker='o')
 	plt.title("Individual %d" %indiv)
 	plt.ylabel("Proportion")
 	plt.xlabel("Degree")
-	plt.xlim(40,70)
-	plt.ylim(0,0.0010)
+
+	global val_xmin
+	global val_ymin
+	global val_xmax
+	global val_ymax
+	if (val_xmin==val_xmax):
+		val_xmin = min(unique_degrees)
+		val_ymin = min(observed)
+		val_ymax=  max(observed)
+		val_xmax= max(unique_degrees)
+
+	plt.xlim(val_xmin - val_xmin/2, val_xmax+val_xmax/2)
+	plt.ylim(val_ymin - val_ymin/2, val_ymax + val_ymax/2)
 	## draw graph in inset
 	plt.axes([0.45,0.45,0.45,0.45])
 	Gcc=sorted(nx.connected_component_subgraphs(G), key = len, reverse=True)[0]
@@ -346,18 +383,63 @@ G = generate_genome()[0]
 #Overall_score_matrix = norm_deviance_matrix1/3 +norm_deviance_matrix2/3 + norm_deviance_matrix3/3
 #draw_heatmaps(Overall_score_matrix)
 
+###########################################
+#-------- Hierarchical character ----------#
+###########################################
+def min_degree(G) :
+        return min(nx.degree(G).values())
+
+def max_degree(G) :
+        return max(nx.degree(G).values())
+
+def hierarchical_caracter(G) :
+        kmin = min_degree(G)
+        kmax = max_degree(G)                # maximum degree in G
+        C = []                # vector of Ck
+        unique_degrees = range(kmin, kmax + 1)                 # degrees vector corresponding to actuak nodes
+        
+        for k in unique_degrees :
+                nk = nx.degree(G).get(k)        # number of nodes of degree k
+                Ck = numpy.zeros(nk)                # vector of nl / (k*(k-1)/2), with nl the numbers observed of edges between the neighbors of each node k
+                nodes_of_degree_k = []                 # vector of nodes of degree k
+                for noeud in nx.nodes(G):
+                        if G.degree(noeud) == k :
+                                nodes_of_degree_k.append(noeud)
+                
+                for l in range(len(nodes_of_degree_k)) :
+                        neighbors_subgraph = G.subgraph(G.neighbors( nodes_of_degree_k[l] ))
+                        Ck[l] = neighbors_subgraph.number_of_edges() / float(k*(k-1)/2)
+                
+                C.append( Ck.mean() )
+        
+        ##To calculate proportionnality coefficient between observed (C(k)) and expected values (1/k)
+        ratio = 0.0
+        expected_curve = []
+        for i in range(len(unique_degrees) ):
+                ratio = ratio + ( C[i]/(1/float(unique_degrees[i])) )
+                expected_curve.append(1/float(unique_degrees[i]))
+        ratio = ratio/len(unique_degrees)
+        
+        observed = []                        # C(k) / mean(ratios)
+        for i in xrange(len(unique_degrees)):
+                observed.append(C[i]/ratio)
+        
+        score = 0
+        for k in range(len(unique_degrees)) :
+                score += abs(observed[k] - 1/float(unique_degrees[k]))
+        
+        return score
+
 def fitness_score(G):
 	avg = overall_average_shortest(G)
 	#print "\nScore small-world!"
 	#print "Average of all shortest paths is %f \n" %avg
 	RSS_score = overall_RSS(G)
+	hier_score = hierarchical_caracter(G)
 	#print "Score Scale-free!"
 	#print "Root Sum Square is %f \n" %RSS_score
 	#score_clique = overall_clique_score(G)
 	#print "Score Clique!"
 	#print "Average clique-number is %f \n" %score_clique
-	fitness = 0
-	if avg+RSS_score != 0:
-		fitness = 1/(avg+RSS_score)
-	return fitness
+	return 1/avg, 1/RSS_score, 1/hier_score
 
