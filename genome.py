@@ -150,9 +150,6 @@ class population:
 		for i,g in enumerate(self.pop):					# For each individual
 			g.UpdateMatrix()							# Do random mutation
 			rd = r.randint(self.nb_genomes) 					
-
-			#if rd!=i:
-				#g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)  # Do random crossing over
 			res = fitness.fitness_score(g.graph())
 			temp_avg.append(res[0])
 			temp_RSS.append(res[1])	# Calculate fitness for each ind
@@ -162,26 +159,27 @@ class population:
 				g.genome, self.pop[rd].genome = g.CrossingOver(g.genome, self.pop[rd].genome)   # Do random crossing over
 			print "Iteration: %d, Individu: %d" %(compt, i)
 			if i == 0:
-				#fitness.draw_figure_scalefree(g.graph(), i, compt)
-				#fitness.draw_figure_hierarchical(g.graph(), i, compt)
+				fitness.draw_figure_scalefree(g.graph(), i, compt)
+				fitness.draw_figure_hierarchical(g.graph(), i, compt)
 				avg = res[0]
 				RSS = res[1] 
 				hier = res[2]
 				#g.draw(g.graph(), compt, i)
 
 		ratio = 0
-		for i in xrange(len(temp_avg)):
+		for i in xrange(nb_genomes):
 			ratio = ratio + (temp_avg[i]/temp_RSS[i])
-		ratio = ratio/len(temp_avg)
-		for i in xrange(len(temp_avg)):
+		ratio = ratio/nb_genomes
+		for i in xrange(nb_genomes):
 			temp_avg[i] = temp_avg[i]/ratio
-		for i in xrange(len(temp_avg)):
+		ratio = 0
+		for i in xrange(nb_genomes):
 			ratio = ratio + (temp_hier[i]/temp_RSS[i])
-		ratio = ratio/len(temp_avg)
-		for i in xrange(len(temp_avg)):
+		ratio = ratio/nb_genomes
+		for i in xrange(nb_genomes):
 			temp_hier[i] = temp_hier[i]/ratio
 
-		for i in xrange(len(temp_avg)):
+		for i in xrange(nb_genomes):
 			F = map(add,temp_avg, temp_RSS)
 			F = map(add,F, temp_hier)
 
@@ -226,10 +224,11 @@ RSS_vect = []
 avg_vect = []
 hier_vect = []
 for i in xrange(100):
-	fitness_vect.append(P.new_generation(i)[0])
-	avg_vect.append(P.new_generation(i)[1])
-	RSS_vect.append(P.new_generation(i)[1])
-	hier_vect.append(P.new_generation(i)[1])
+	res = P.new_generation(i)
+	fitness_vect.append(res[0])
+	avg_vect.append(1/res[1])
+	RSS_vect.append(1/res[2])
+	hier_vect.append(1/res[3])
 	iter_vect.append(i)
 
 	csvfile = "Matrix"
@@ -242,23 +241,18 @@ plt.savefig("Evolution de la fitness")
 plt.close()
 
 plt.plot(iter_vect,avg_vect,marker='o')
-plt.plot(iter_vect,math.log(nb_genes),marker='o')
+plt.savefig("Evolution du petit-monde")
+plt.close()
 
 
 plt.plot(iter_vect,RSS_vect,marker='o')
-plt.plot(iter_vect,math.log(nb_genes),marker='o')
+plt.savefig("Evolution de la loi gamma")
+plt.close()
 
 
 plt.plot(iter_vect,hier_vect,marker='o')
-plt.plot(iter_vect,math.log(nb_genes),marker='o')
-
-plt.savefig("Evolution de avg_shortest")
+plt.savefig("Evolution du clustering")
 plt.close()
-
-n = 50
-a = r.rand(n,n) * r.choice([-1, 1], size=(n,n))
-Gen = genome(n)
-
 
 
 # for i in xrange(1):
