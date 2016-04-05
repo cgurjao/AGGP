@@ -258,7 +258,7 @@ def draw_figure_scalefree(G,indiv = 0,compt = 0):
 
 	plt.plot(unique_degrees, observed, 'ro')
 	plt.plot(np.arange(1, 1000, 1), expected_curve, marker = 'o')
-	plt.ylabel("Proportion")
+	plt.ylabel("Proportion of nodes")
 	plt.xlabel("Degree")
 
 	for i in xrange(len(unique_degrees)):
@@ -277,12 +277,12 @@ def draw_figure_scalefree(G,indiv = 0,compt = 0):
 	plt.xlim(val_xmin - val_xmin/2, val_xmax+val_xmax/2)
 	plt.ylim(val_ymin - val_ymin/2, val_ymax + val_ymax/2)
 	## draw graph in inset
-	plt.axes([0.45,0.45,0.45,0.45])
-	Gcc=sorted(nx.connected_component_subgraphs(G), key = len, reverse=True)[0]
-	pos=nx.spring_layout(Gcc)
-	plt.axis('off')
-	nx.draw_networkx_nodes(Gcc,pos,node_size=20)
-	nx.draw_networkx_edges(Gcc,pos,alpha=0.4)
+	#plt.axes([0.45,0.45,0.45,0.45])
+	#Gcc=sorted(nx.connected_component_subgraphs(G), key = len, reverse=True)[0]
+	#pos=nx.spring_layout(Gcc)
+	#plt.axis('off')
+	#nx.draw_networkx_nodes(Gcc,pos,node_size=20)
+	#nx.draw_networkx_edges(Gcc,pos,alpha=0.4)
 	plt.title("Scale-free")#, score = %f" %RSS)
 	name = "z_RSS_Indiv_%d _Iteration_%d" %(indiv, compt)
 	plt.savefig(name)
@@ -512,4 +512,6 @@ def fitness_score(G):
 	#print "Score Clique!"
 	#print "Average clique-number is %f \n" %score_clique
 	return 1/avg, 1/RSS_score, 1/hier_score
-
+	#return 1/avg
+	#return 1/RSS_score
+	#return 0,0,1/hier_score

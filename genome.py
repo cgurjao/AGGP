@@ -1,3 +1,4 @@
+# coding=utf-8
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,6 +11,11 @@ import collections
 from paramsGlob import *
 from operator import add
 import csv
+
+open('fitness.txt', 'w').close()
+open('small-world.txt', 'w').close()
+open('scale-free.txt', 'w').close()
+open('cluster.txt', 'w').close()
 
 
 #=============================================================================
@@ -91,7 +97,7 @@ class genome:
 			plt.close()
 
 
-'''
+''' 
 		position = nx.circular_layout(G)
 
 		fig = plt.figure(self.nb_fig)
@@ -113,7 +119,7 @@ class genome:
 		if save == True and iteration == 9999:
 			plt.title('Graph')
 			plt.savefig('graph')
-			plt.close()'''
+			plt.close()''' 
 
 
 #=============================================================================
@@ -161,29 +167,55 @@ class population:
 			if i == 0:
 				fitness.draw_figure_scalefree(g.graph(), i, compt)
 				fitness.draw_figure_hierarchical(g.graph(), i, compt)
-				avg = res[0]
-				RSS = res[1] 
-				hier = res[2]
 				#g.draw(g.graph(), compt, i)
 
 		ratio = 0
 		for i in xrange(nb_genomes):
-			ratio = ratio + (temp_avg[i]/temp_RSS[i])
+			if temp_RSS[i] != 0:
+				ratio = ratio + (temp_avg[i]/temp_RSS[i])
 		ratio = ratio/nb_genomes
 		for i in xrange(nb_genomes):
-			temp_avg[i] = temp_avg[i]/ratio
+			if ratio != 0:
+				temp_avg[i] = temp_avg[i]/ratio
 		ratio = 0
 		for i in xrange(nb_genomes):
-			ratio = ratio + (temp_hier[i]/temp_RSS[i])
+			if temp_RSS[i] != 0:
+				ratio = ratio + (temp_hier[i]/temp_RSS[i])
 		ratio = ratio/nb_genomes
 		for i in xrange(nb_genomes):
-			temp_hier[i] = temp_hier[i]/ratio
+			if ratio != 0:
+				temp_hier[i] = temp_hier[i]/ratio
 
 		for i in xrange(nb_genomes):
 			F = map(add,temp_avg, temp_RSS)
 			F = map(add,F, temp_hier)
 
-		proba_rep = self.selection(F,0.7)
+		with open("fitness.txt", "a") as myfile:
+			for i in range(len(F)):
+				myfile.write(str(F[i]))
+				myfile.write("\t")
+			myfile.write("\n")
+
+		with open("small-world.txt", "a") as myfile:
+			for i in range(len(F)):
+				myfile.write(str(temp_avg[i]))
+				myfile.write("\t")
+			myfile.write("\n")
+
+		with open("scale-free.txt", "a") as myfile:
+			for i in range(len(F)):
+				myfile.write(str(temp_RSS[i]))
+				myfile.write("\t")
+			myfile.write("\n")
+
+
+		with open("cluster.txt", "a") as myfile:
+			for i in range(len(F)):
+				myfile.write(str(temp_hier[i]))
+				myfile.write("\t")
+			myfile.write("\n")
+
+		proba_rep = self.selection(F,selection_intensity)
 		#bprint sum(F)
 		new_pop = []
 		for j in xrange(self.nb_genomes):
@@ -195,7 +227,7 @@ class population:
 			new_pop.append(copy.deepcopy(self.pop[i]))
 		self.pop = new_pop
 		self.gen += 1
-		return sum(F), avg, RSS, hier
+		return sum(F), temp_avg, temp_RSS, temp_hier
 			
 	# Generates array of reproduction probabilities (one per genome)
 	def selection(self,fit_table,c):
@@ -226,9 +258,12 @@ hier_vect = []
 for i in xrange(100):
 	res = P.new_generation(i)
 	fitness_vect.append(res[0])
-	avg_vect.append(1/res[1])
-	RSS_vect.append(1/res[2])
-	hier_vect.append(1/res[3])
+	if res[1] != 0:
+		avg_vect.append(1/res[1][0])
+	if res[2] != 0:
+		RSS_vect.append(1/res[2][0])
+	if res[3] != 0:
+		hier_vect.append(1/res[3][0])
 	iter_vect.append(i)
 
 	csvfile = "Matrix"
@@ -236,25 +271,62 @@ for i in xrange(100):
 		writer = csv.writer(output, lineterminator='\n')
 		writer.writerows(P.pop[0].genome)
 
-plt.plot(iter_vect,fitness_vect,marker='o')
-plt.savefig("Evolution de la fitness")
-plt.close()
+if len(iter_vect) == len(fitness_vect):
+	plt.plot(iter_vect,fitness_vect,marker='o')
+	plt.savefig("Evolution de la fitness")
+	plt.ylabel("Fitness")
+	plt.xlabel("Itération")
+	plt.close()
 
-plt.plot(iter_vect,avg_vect,marker='o')
-plt.savefig("Evolution du petit-monde")
-plt.close()
+if len(iter_vect) == len(avg_vect):
+	plt.plot(iter_vect,avg_vect,marker='o')
+	plt.savefig("Evolution du score petit-monde")
+	plt.ylabel("Score petit-monde")
+	plt.xlabel("Itération")
+	plt.close()
+
+if len(iter_vect) == len(RSS_vect):
+	plt.plot(iter_vect,RSS_vect,marker='o')
+	plt.savefig("Evolution du score d'invariance d'échelle")
+	plt.ylabel("Score d'invariance d'échelle")
+	plt.xlabel("Itération")
+	plt.close()
 
 
-plt.plot(iter_vect,RSS_vect,marker='o')
-plt.savefig("Evolution de la loi gamma")
-plt.close()
+if len(iter_vect) == len(hier_vect):
+	plt.plot(iter_vect,hier_vect,marker='o')
+	plt.savefig("Evolution du score de clustering")
+	plt.ylabel("Score de clustering")
+	plt.xlabel("Itération")
+	plt.close()
 
 
-plt.plot(iter_vect,hier_vect,marker='o')
-plt.savefig("Evolution du clustering")
-plt.close()
+table = np.loadtxt('fitness.txt', skiprows=1)
+fig, ax = plt.subplots(1)
+p = ax.pcolormesh(table)
+fig.colorbar(p)
+fig.savefig('Fitness.png')
 
 
+table = np.loadtxt('cluster.txt', skiprows=1)
+fig, ax = plt.subplots(1)
+p = ax.pcolormesh(table)
+fig.colorbar(p)
+fig.savefig('Cluster.png')
+
+
+table = np.loadtxt('small-world.txt', skiprows=1)
+fig, ax = plt.subplots(1)
+p = ax.pcolormesh(table)
+fig.colorbar(p)
+fig.savefig('Small-World.png')
+
+
+table = np.loadtxt('scale-free.txt', skiprows=1)
+fig, ax = plt.subplots(1)
+p = ax.pcolormesh(table)
+fig.colorbar(p)
+fig.savefig('Scale-Free.png')
 # for i in xrange(1):
 # 	S0 = fitness.matrix_score(Gen.graph())
 # 	print S0
