@@ -96,17 +96,16 @@ def normalize_data(matrix1):
 
 def overall_average_shortest(G):
 	avg = 0.0
+	ref = (math.log(N))
 	for g in nx.connected_component_subgraphs(G):
 		for node in g:
         		    path_length=nx.single_source_dijkstra_path_length(g, node)
-        		    avg += sum(path_length.values())
+        		    avg += ref - sum(path_length.values())
     		n=len(g)
     		if n>1:
 			    return float(avg)/float(n*(n-1))
     		else:
-			    return 0.0
-		avg = float(avg) + float(average_shortest(g))
-	return avg			
+			    return  0.0
 
 def score_matrix_small_world(G):
 	##Calculate deviance of path length for each gene
@@ -511,7 +510,7 @@ def fitness_score(G):
 	#score_clique = overall_clique_score(G)
 	#print "Score Clique!"
 	#print "Average clique-number is %f \n" %score_clique
-	return 1/avg, 1/RSS_score, 1/hier_score
+	return float(1.0/avg), 1/RSS_score, 1/hier_score
 	#return 1/avg
 	#return 1/RSS_score
 	#return 0,0,1/hier_score

@@ -157,8 +157,8 @@ class population:
 			g.UpdateMatrix()							# Do random mutation
 			rd = r.randint(self.nb_genomes) 					
 			res = fitness.fitness_score(g.graph())
-			temp_avg.append(res[0])
-			temp_RSS.append(res[1])	# Calculate fitness for each ind
+			temp_avg.append(float(res[0]))
+			temp_RSS.append(res[1])
 			temp_hier.append(res[2])
 
 			if rd!=i:
@@ -169,23 +169,22 @@ class population:
 				fitness.draw_figure_hierarchical(g.graph(), i, compt)
 				#g.draw(g.graph(), compt, i)
 
-		ratio = 0
+		ratio = 0.0
 		for i in xrange(nb_genomes):
 			if temp_RSS[i] != 0:
-				ratio = ratio + (temp_avg[i]/temp_RSS[i])
-		ratio = ratio/nb_genomes
+				ratio = ratio + float(temp_avg[i]/temp_RSS[i])
+		ratio = ratio/float(nb_genomes)
 		for i in xrange(nb_genomes):
 			if ratio != 0:
-				temp_avg[i] = temp_avg[i]/ratio
+				temp_avg[i] = float(temp_avg[i])/ratio
 		ratio = 0
 		for i in xrange(nb_genomes):
 			if temp_RSS[i] != 0:
 				ratio = ratio + (temp_hier[i]/temp_RSS[i])
-		ratio = ratio/nb_genomes
+		ratio = ratio/float(nb_genomes)
 		for i in xrange(nb_genomes):
 			if ratio != 0:
 				temp_hier[i] = temp_hier[i]/ratio
-
 		for i in xrange(nb_genomes):
 			F = map(add,temp_avg, temp_RSS)
 			F = map(add,F, temp_hier)
@@ -259,17 +258,17 @@ for i in xrange(100):
 	res = P.new_generation(i)
 	fitness_vect.append(res[0])
 	if res[1] != 0:
-		avg_vect.append(1/res[1][0])
+		avg_vect.append(1.0/res[1][0])
 	if res[2] != 0:
-		RSS_vect.append(1/res[2][0])
+		RSS_vect.append(1.0/res[2][0])
 	if res[3] != 0:
-		hier_vect.append(1/res[3][0])
+		hier_vect.append(1.0/res[3][0])
 	iter_vect.append(i)
 
-	csvfile = "Matrix"
-	with open(csvfile,"w") as output:
-		writer = csv.writer(output, lineterminator='\n')
-		writer.writerows(P.pop[0].genome)
+	#csvfile = "Matrix"
+	#with open(csvfile,"w") as output:
+		#writer = csv.writer(output, lineterminator='\n')
+		#writer.writerows(P.pop[0].genome)
 
 if len(iter_vect) == len(fitness_vect):
 	plt.plot(iter_vect,fitness_vect,marker='o')
